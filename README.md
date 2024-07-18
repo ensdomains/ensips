@@ -4,8 +4,8 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 
 ## Proposal List
 
->> WIP
+> WIP
 
 ## Proposal Process
 
->> WIP
+> WIP
