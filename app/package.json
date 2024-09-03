@@ -1,18 +1,21 @@
 {
-  "name": "app",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "vite build",
-    "dev": "vite"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "typescript": "^5.5.4",
-    "vite": "^5.4.3"
-  }
+	"type": "module",
+	"scripts": {
+		"build": "tsx index.tsx",
+		"preview": "pnpm run build && pnpm vite preview"
+	},
+	"dependencies": {
+		"@types/react": "^18.3.5",
+		"@types/react-dom": "^18.3.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"remark": "^15.0.1",
+		"remark-html": "^16.0.1",
+		"tsx": "^4.19.0",
+		"typescript": "^5.5.4",
+		"vite": "^5.4.3"
+	},
+	"devDependencies": {
+		"@types/node": "^22.5.2"
+	}
 }

@@ -1,0 +1,20 @@
+html, body {
+    background: #f7f7fa;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 16px;
+}
+
+article {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+nav {
+    display: flex;
+    gap: 4px;
+}
+
+nav ul {
+    text-decoration: none;
+    list-style: none;
+}
