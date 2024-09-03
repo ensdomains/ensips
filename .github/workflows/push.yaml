@@ -16,20 +16,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18.x" # Set to your preferred Node.js version
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
 
-      - name: Install Bun
-        run: |
-          curl -fsSL https://bun.sh/install | bash
-          export PATH="$HOME/.bun/bin:$PATH"
+      - name: Build web preview
+        run: pnpm build
+        working-directory: ./app
 
-      - name: Install dependencies using Bun
-        run: bun install
-        working-directory: ./bot
+      # - name: Install dependencies using Bun
+      #   run: bun install
+      #   working-directory: ./bot
 
-      - name: Run
-        run: bun run index.ts
-        working-directory: ./bot
+      # - name: Run
+      #   run: bun run index.ts
+      #   working-directory: ./bot
