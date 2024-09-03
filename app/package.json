@@ -10,10 +10,12 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"remark": "^15.0.1",
+		"remark-frontmatter": "^5.0.0",
 		"remark-html": "^16.0.1",
 		"tsx": "^4.19.0",
 		"typescript": "^5.5.4",
-		"vite": "^5.4.3"
+		"vite": "^5.4.3",
+		"yaml": "^2.5.0"
 	},
 	"devDependencies": {
 		"@types/node": "^22.5.2"

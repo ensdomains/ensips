@@ -18,3 +18,16 @@ nav ul {
     text-decoration: none;
     list-style: none;
 }
+
+.front {
+    border: 1px solid black;
+    padding: 16px;
+}
+
+.space-y-4 > * {
+    margin-top: 16px;
+}
+
+.space-y-4 > :first-child {
+    margin-top: 0;
+}
