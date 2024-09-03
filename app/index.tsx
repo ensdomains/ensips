@@ -31,7 +31,7 @@ try {
 await mkdir('./dist');
 
 for (const file of files) {
-    const directPath = file.replace('../', '/app/');
+    const directPath = file.replace('../', '');
 
     try {
         const fileData = await readFile(file, 'utf8');
