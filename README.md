@@ -10,6 +10,10 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 
 > WIP
 
+- Please PR to `/ensips/x.md` with your proposal for a new ENSIP
+- PR's will be assigned an ensip number upon merge by a maintainer
+- README.md file is updated by a maintainer accordingly (please do not include in PR)
+
 ## Rule List
 
 - Must have one `title` (#)
