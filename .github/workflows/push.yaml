@@ -1,0 +1,35 @@
+name: Install Dependencies with Bun
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x" # Set to your preferred Node.js version
+
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          export PATH="$HOME/.bun/bin:$PATH"
+
+      - name: Install dependencies using Bun
+        run: bun install
+        working-directory: ./bot
+
+      - name: Run
+        run: bun run index.ts
+        working-directory: ./bot
