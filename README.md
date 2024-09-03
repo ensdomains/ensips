@@ -16,6 +16,7 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 - Must have one `Abstract`, with body
 - Must have one `Motivation`, with body
 - Must have one `Specification`, with body
+  - Unlimited subsections under `Specification` are allowed
 - Must have one `Rationale`, with body
 - May have one `Backwards Compatibility`, with body
 - May have one `Security Considerations`, with body
@@ -26,6 +27,11 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 - Must have `ensip` in frontmatter
   - Must have `created` under `ensip`
   - Must have `status` under `ensip` (draft, obsolete, final)
+
+### General Formatting
+
+- At most one enter in between sections
+- No unformattable characters (im looking at you apostrophes), exceptions include name formatting ensip's
 
 ## License
 
