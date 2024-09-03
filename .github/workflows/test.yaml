@@ -1,0 +1,34 @@
+name: Check & Build
+
+on:
+  push:
+    branches:
+      - ci/test
+  pull_request:
+    branches:
+      - ci/test
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+
+      - name: Build web preview
+        run: pnpm build
+        working-directory: ./app
+
+      # - name: Install dependencies using Bun
+      #   run: bun install
+      #   working-directory: ./bot
+
+      # - name: Run
+      #   run: bun run index.ts
+      #   working-directory: ./bot
+      - name: Test Error
+        run: echo "::error file=README.md,line=1,col=2,endColumn=5::Missing semicolon"
