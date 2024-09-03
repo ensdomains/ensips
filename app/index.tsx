@@ -31,38 +31,50 @@ try {
 await mkdir('./dist');
 
 for (const file of files) {
+    const directPath = file.replace('../', '/app/');
+
     try {
         const fileData = await readFile(file, 'utf8');
 
-        let frontmatter: string = '';
+        let frontmatter: { type: 'yaml', value: string, position: { start: { line: number, column: number }, end: { line: number, column: number } } };
 
         const result = await remark().use(remarkFrontMatter).use(html).use(function () {
             return function (tree) {
                 // console.dir(tree)
                 let first = ((tree as any)['children'] as { type: string, value?: string }[]).shift();
                 if (first && first.type === 'yaml' && first.value) {
-                    frontmatter = first.value;
+                    // @ts-ignore
+                    frontmatter = first;
                 } else {
                     throw new Error('No frontmatter found');
                 }
             }
         }).process(fileData);
 
-        const frontmatter_parsed = parseYaml(frontmatter) as Frontmatter;
-        console.log(frontmatter_parsed);
+        const frontmatter_parsed = (() => {
+            try {
+                // @ts-ignore
+                return parseYaml(frontmatter.value as string) as Frontmatter;
+            } catch (error) {
+                if (error instanceof YAMLParseError) {
+                    console.log(error.name);
+                    const line = frontmatter!.position.start.line + (error.linePos?.[0].line || 0);
+                    const column = frontmatter!.position.start.column + (error.linePos?.[0].col || 0);
+                    const endColumn = frontmatter!.position.start.column + (error.linePos?.[0].col || 0);
+                    console.log('::error file=' + directPath + ',line=' + line + ',col=' + column + ',endColumn=' + endColumn + '::' + error.message)
 
-        const x = renderToStaticMarkup(<App markdown={result.value.toString()} frontmatter={frontmatter_parsed} />);
+                    process.exit(1);
+                } else {
+                    console.log(error);
+                }
+            }
+        })();
+
+        const x = renderToStaticMarkup(<App markdown={result.value.toString()} frontmatter={frontmatter_parsed!} />);
 
         // write to file
         await writeFile(`./dist/${file.split('/').pop()?.replace('.md', '.html')}`, x);
     } catch (error) {
-        const directPath = file.replace('../', '/app/');
-
-        if (error instanceof YAMLParseError) {
-            console.log(error.linePos);
-            // console.log('::error file=' + directPath + ',line=' + error.mark.line + ',col=' + error.mark.column + ',endColumn=' + error.mark.column + '::Unable to load file')
-        }
-
         console.log(error);
         console.log('::error file=' + directPath + ',line=1,col=1,endColumn=2::Unable to load file')
     }
