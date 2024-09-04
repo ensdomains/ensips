@@ -3,6 +3,8 @@ import type { Plugin } from 'unified';
 import { parse as parseYaml, YAMLParseError } from 'yaml';
 import { z, ZodError } from 'zod';
 
+import { ENSNameRegex, GithubUsernameRegex } from '../util/regex';
+
 export type UnparsedFrontmatter = {
     type: 'yaml';
     value: string;
@@ -20,10 +22,6 @@ export type Frontmatter = {
         created: string;
     };
 };
-
-// TODO: update to be more accurate
-const ENSNameRegex = /^[\da-z]+\.[\da-z]+$/;
-const GithubUsernameRegex = /^[\dA-Za-z]+$/;
 
 export const FrontMatterZod = z.object({
     description: z.string().min(5).max(160),

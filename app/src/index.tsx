@@ -12,6 +12,7 @@ import {
 } from './specs/validateFrontmatter';
 import { extractTitle } from './specs/validateTitle';
 import { TracedError } from './util/error';
+import { ENSIPNumberMatch } from './util/regex';
 
 console.log('Building preview...');
 
@@ -96,12 +97,27 @@ for (const file of files) {
                     ',line=1,col=1,endColumn=2::Unable to load file'
             );
         }
+
+        // eslint-disable-next-line unicorn/no-process-exit
+        process.exit(1);
     }
 }
 
-ensips = ensips.sort((a, b) =>
-    a.frontmatter.ensip.created.localeCompare(b.frontmatter.ensip.created)
-);
+// sort ensips by number, all titles start with ENSIP-1 to ENSIP-19, I want 19 to be the last, 1 to be the first
+ensips = ensips.sort((a, b) => {
+    const titleA = ENSIPNumberMatch.exec(a.title)![1] as string;
+    const titleB = ENSIPNumberMatch.exec(b.title)![1] as string;
+
+    if (titleA.toLowerCase() === 'x') {
+        return 1;
+    }
+
+    if (titleB.toLowerCase() === 'x') {
+        return -1;
+    }
+
+    return Number.parseInt(titleA, 10) - Number.parseInt(titleB, 10);
+});
 
 // Render Index
 await writeFile(
