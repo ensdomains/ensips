@@ -1,8 +1,9 @@
 {
     "type": "module",
     "scripts": {
-        "dev": "chokidar './src/**/*' '../ensips/*.md' --initial -c 'pnpm preview'",
+        "dev": "concurrently \"pnpm:watch:build\" \"pnpm:preview\"",
         "build": "tsx src/index.tsx",
+        "watch:build": "chokidar './src/**/*' '../ensips/*.md' -t 500 --initial -c 'pnpm build'",
         "preview": "pnpm run build && pnpm vite preview",
         "lint": "eslint -c .eslintrc.json --ext .ts,.tsx ./src"
     },
@@ -10,14 +11,17 @@
         "@types/react": "^18.3.5",
         "@types/react-dom": "^18.3.0",
         "chokidar-cli": "^3.0.0",
+        "concurrently": "^8.2.2",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "remark": "^15.0.1",
         "remark-frontmatter": "^5.0.0",
         "remark-html": "^16.0.1",
         "tsx": "^4.19.0",
+        "unified": "^11.0.5",
         "vite": "^5.4.3",
-        "yaml": "^2.5.0"
+        "yaml": "^2.5.0",
+        "zod": "^3.23.8"
     },
     "devDependencies": {
         "@types/node": "^22.5.2",
