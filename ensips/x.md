@@ -15,8 +15,6 @@ This ENSIP aims to standardize the usage of [W3C Verifiable Credentials & Presen
 
 ## Motivation
 
-# Faulty third title
-
 With the increasing prevalence of self-custodial digital identity & attestation solutions, it is of importance to have a standardized way to publicly share verifiable credentials using your ENS profile.
 Allowing for easy sharing of verifiable credentials right on your profile.
 
