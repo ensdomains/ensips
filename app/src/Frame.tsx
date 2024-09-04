@@ -6,6 +6,7 @@ export const Frame: FC<PropsWithChildren> = ({ children }) => {
             <head>
                 <title>ENSIPs</title>
                 <link rel="stylesheet" href="./index.css" type="text/css" />
+                <link rel="stylesheet" href="./normalize.css" type="text/css" />
             </head>
             <body>{children}</body>
         </html>

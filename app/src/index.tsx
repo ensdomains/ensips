@@ -11,6 +11,7 @@ import {
     extractFrontmatter,
 } from './specs/validateFrontmatter';
 import { extractTitle } from './specs/validateTitle';
+import { TracedError } from './util/error';
 
 console.log('Building preview...');
 
@@ -80,12 +81,21 @@ for (const file of files) {
             x
         );
     } catch (error) {
-        console.log(error);
-        console.log(
-            '::error file=' +
-                directPath +
-                ',line=1,col=1,endColumn=2::Unable to load file'
-        );
+        if (error instanceof TracedError) {
+            console.log(error.error);
+
+            console.log(
+                `::error file=${directPath},line=${error.line},col=${error.column},endColumn=${error.columnEnd}::${error.error}`
+            );
+        } else {
+            console.log(error);
+
+            console.log(
+                '::error file=' +
+                    directPath +
+                    ',line=1,col=1,endColumn=2::Unable to load file'
+            );
+        }
     }
 }
 
@@ -101,7 +111,7 @@ await writeFile(
 
 // Render public content
 
-const static_files = ['./public/index.css'];
+const static_files = ['./public/index.css', './public/normalize.css'];
 
 for (const file of static_files) {
     const fileData = await readFile(file, 'utf8');

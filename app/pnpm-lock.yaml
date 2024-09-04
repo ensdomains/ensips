@@ -14,6 +14,9 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.0
         version: 18.3.0
+      '@types/unist':
+        specifier: ^3.0.3
+        version: 3.0.3
       chokidar-cli:
         specifier: ^3.0.0
         version: 3.0.0
@@ -41,6 +44,9 @@ importers:
       unified:
         specifier: ^11.0.5
         version: 11.0.5
+      unist:
+        specifier: ^0.0.1
+        version: 0.0.1
       vite:
         specifier: ^5.4.3
         version: 5.4.3(@types/node@22.5.2)
@@ -1994,6 +2000,10 @@ packages:
 
   unist-util-visit@5.0.0:
     resolution: {integrity: sha512-MR04uvD+07cwl/yhVuVWAtw+3GOR/knlL55Nd/wAdblk27GCVt3lqpTivy/tkJcZoNPzTwS1Y+KMojlLDhoTzg==}
+
+  unist@0.0.1:
+    resolution: {integrity: sha512-bnzuF8b6d47WubA4a5yLqFbuZz/v/NS6eRwUIdOaDmsqzwTlyv8yS1g3M7ISdtBQrigPD3qKK87Cu7zhEfCF3A==}
+    deprecated: Use @types/unist instead
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
@@ -4276,6 +4286,8 @@ snapshots:
       '@types/unist': 3.0.3
       unist-util-is: 6.0.0
       unist-util-visit-parents: 6.0.1
+
+  unist@0.0.1: {}
 
   uri-js@4.4.1:
     dependencies:

@@ -15,7 +15,6 @@ export const App: FC<{ markdown: string; frontmatter: Frontmatter }> = ({
                 <Navbar />
                 <Header frontmatter={frontmatter} />
                 <div dangerouslySetInnerHTML={{ __html: markdown }} />
-                <div>ENSIPs</div>
             </article>
         </Frame>
     );
