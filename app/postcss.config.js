@@ -1,4 +1,5 @@
 import autoprefixer from 'autoprefixer';
+import cssnanoPlugin from 'cssnano';
 import postcssNested from 'postcss-nested';
 import tailwind from 'tailwindcss';
 
@@ -14,5 +15,6 @@ export default {
                 'ie 11',
             ],
         }),
+        cssnanoPlugin(),
     ],
 };
