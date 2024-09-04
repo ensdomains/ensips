@@ -88,7 +88,7 @@ export const validateFrontmatter = (
 };
 
 export const extractFrontmatter =
-    (directPath: string, callback: (found: Frontmatter) => void): Plugin =>
+    (directPath: string, callback: (_found: Frontmatter) => void): Plugin =>
     () =>
     (tree) => {
         const first = (

@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import type { Frontmatter } from '..';
+import type { Frontmatter } from '../specs/validateFrontmatter';
 
 export const Header: FC<{ frontmatter: Frontmatter }> = ({ frontmatter }) => {
     return (

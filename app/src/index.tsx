@@ -5,10 +5,12 @@ import remarkFrontMatter from 'remark-frontmatter';
 import html from 'remark-html';
 
 import { App } from './App';
+import { Home } from './Home';
 import {
     type Frontmatter,
     extractFrontmatter,
 } from './specs/validateFrontmatter';
+import { extractTitle } from './specs/validateTitle';
 
 console.log('Building preview...');
 
@@ -25,6 +27,15 @@ try {
 
 await mkdir('./dist');
 
+export type ENSIPData = {
+    path: string;
+    title: string;
+    frontmatter: Frontmatter;
+    markdown: string;
+};
+
+let ensips: ENSIPData[] = [];
+
 for (const file of files) {
     const directPath = file.replace('../', '');
 
@@ -32,6 +43,7 @@ for (const file of files) {
         const fileData = await readFile(file, 'utf8');
 
         let frontmatter: Frontmatter;
+        let title: string;
 
         const result = await remark()
             .use(remarkFrontMatter)
@@ -41,7 +53,19 @@ for (const file of files) {
                     frontmatter = _frontmatter;
                 })
             )
+            .use(
+                extractTitle(directPath, (_found) => {
+                    title = _found;
+                })
+            )
             .process(fileData);
+
+        ensips.push({
+            path: directPath.split('/').pop()!.replace('.md', ''),
+            title: title!,
+            frontmatter: frontmatter!,
+            markdown: result.value.toString(),
+        });
 
         const x = renderToStaticMarkup(
             <App
@@ -64,6 +88,18 @@ for (const file of files) {
         );
     }
 }
+
+ensips = ensips.sort((a, b) =>
+    a.frontmatter.ensip.created.localeCompare(b.frontmatter.ensip.created)
+);
+
+// Render Index
+await writeFile(
+    './dist/index.html',
+    renderToStaticMarkup(<Home ensips={ensips} />)
+);
+
+// Render public content
 
 const static_files = ['./public/index.css'];
 
