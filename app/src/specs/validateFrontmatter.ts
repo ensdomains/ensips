@@ -3,6 +3,7 @@ import type { Plugin } from 'unified';
 import { parse as parseYaml, YAMLParseError } from 'yaml';
 import { z, ZodError } from 'zod';
 
+import { TracedError } from '../util/error';
 import { ENSNameRegex, GithubUsernameRegex } from '../util/regex';
 
 export type UnparsedFrontmatter = {
@@ -51,7 +52,6 @@ export const validateFrontmatter = (
         return FrontMatterZod.parse(parsed);
     } catch (error) {
         if (error instanceof YAMLParseError) {
-            console.log(error.name);
             const line =
                 frontmatter!.position.start.line +
                 (error.linePos?.[0].line || 0);
@@ -62,26 +62,18 @@ export const validateFrontmatter = (
                 frontmatter!.position.start.column +
                 (error.linePos?.[0].col || 0);
 
-            console.log(
-                '::error file=' +
-                    directPath +
-                    ',line=' +
-                    line +
-                    ',col=' +
-                    column +
-                    ',endColumn=' +
-                    endColumn +
-                    '::' +
-                    error.message
-            );
+            throw new TracedError(error, directPath, line, column, endColumn);
         } else if (error instanceof ZodError) {
-            console.log(error.issues, frontmatter, directPath);
-        } else {
-            console.log(error);
+            throw new TracedError(
+                error,
+                directPath,
+                frontmatter!.position.start.line,
+                frontmatter!.position.start.column,
+                frontmatter!.position.end.column
+            );
         }
 
-        // eslint-disable-next-line unicorn/no-process-exit
-        process.exit(1);
+        throw error;
     }
 };
 

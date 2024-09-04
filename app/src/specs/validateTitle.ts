@@ -43,9 +43,7 @@ export const extractTitle =
             (node) => node.type === 'heading' && node.depth === 1
         ) as TitleNode[];
 
-        if (titleCount.length > 1) {
-            console.log(titleCount[1]);
-
+        if (titleCount.length > 1)
             throw new TracedError(
                 'More then one h1 (#) heading found, please use h2 (##) or h3 (###) headings',
                 directPath,
@@ -53,7 +51,6 @@ export const extractTitle =
                 titleCount[1]!.position.start.column,
                 titleCount[1]!.position.end.column
             );
-        }
 
         const first = (
             (tree as any)['children'] as [
@@ -65,9 +62,9 @@ export const extractTitle =
             ]
         ).shift();
 
-        const x = TitleZod.parse(first);
+        const titleNode = TitleZod.parse(first);
 
-        const title = x.children
+        const title = titleNode.children
             .reduce(
                 (accumulator, current) => accumulator + ' ' + current.value,
                 ''
@@ -76,8 +73,12 @@ export const extractTitle =
 
         // title must match regex
         if (!titleRegex.test(title)) {
-            throw new Error(
-                'Invalid title format, please format title as "ENSIP-X: Title" (PR\'s) or "ENSIP-123: Title" (after merge)'
+            throw new TracedError(
+                'Invalid title format, please format title as "ENSIP-X: Title" (PR\'s) or "ENSIP-123: Title" (after merge)',
+                directPath,
+                titleNode.position.start.line,
+                titleNode.position.start.column,
+                titleNode.position.end.column
             );
         }
 
