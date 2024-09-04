@@ -1,7 +1,7 @@
 export const Navbar = () => {
     return (
         <nav>
-            <div>ENSIPs</div>
+            <div>ENS</div>
             <ul>
                 <li>
                     <a href="/">All ENSIPs</a>
