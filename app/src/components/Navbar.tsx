@@ -3,7 +3,9 @@ export const Navbar = () => {
         <nav>
             <div>ENSIPs</div>
             <ul>
-                <li>All</li>
+                <li>
+                    <a href="/">All ENSIPs</a>
+                </li>
             </ul>
         </nav>
     );
