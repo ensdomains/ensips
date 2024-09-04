@@ -7,7 +7,7 @@ ensip:
   created: 2024-05-21
 ---
 
-# ENSIP-X: Verifiable Credentials in ENS
+# ENSIP-Xz: Verifiable Credentials in ENS
 
 ## Abstract
 
