@@ -28,11 +28,13 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 
 > WIP
 
+[Example submission pull request](https://github.com/ensdomains/ensips/pull/4)
+
 - Please PR to `/ensips/x.md` with your proposal for a new ENSIP
 - PR's will be assigned an ensip number upon merge by a maintainer
 - README.md file is updated by a maintainer accordingly (please do not include in PR)
 
-## Rule List
+### Submission Checklist
 
 - Must have one `title` (#)
 - Must have one `Abstract`, with body
@@ -50,7 +52,7 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
   - Must have `created` under `ensip` (YYYY-MM-DD)
   - Must have `status` under `ensip` (draft, obsolete, final)
 
-### General Formatting
+#### General Formatting
 
 - At most one enter in between sections
 - No unformattable characters (im looking at you apostrophes), exceptions include name formatting ensip's
