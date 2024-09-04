@@ -28,7 +28,7 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 
 > WIP
 
-[Example submission pull request](https://github.com/ensdomains/ensips/pull/4)
+[Example PR](https://github.com/ensdomains/ensips/pull/4) - [Example Preview](https://template-ensip.ensips.pages.dev/ensip/x)
 
 - Please PR to `/ensips/x.md` with your proposal for a new ENSIP
 - PR's will be assigned an ensip number upon merge by a maintainer
