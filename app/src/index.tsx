@@ -1,9 +1,11 @@
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import postcss from 'postcss';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { remark } from 'remark';
 import remarkFrontMatter from 'remark-frontmatter';
 import html from 'remark-html';
 
+import postcssConfig from '../postcss.config.js';
 import { App } from './App';
 import { Home } from './Home';
 import {
@@ -28,6 +30,7 @@ try {
 }
 
 await mkdir('./dist');
+await mkdir('./dist/ensip');
 
 export type ENSIPData = {
     path: string;
@@ -40,6 +43,7 @@ let ensips: ENSIPData[] = [];
 
 for (const file of files) {
     const directPath = file.replace('../', '');
+    const filename = directPath.split('/').pop()!;
 
     try {
         const fileData = await readFile(file, 'utf8');
@@ -63,7 +67,7 @@ for (const file of files) {
             .process(fileData);
 
         const data: ENSIPData = {
-            path: directPath.split('/').pop()!.replace('.md', ''),
+            path: filename.replace('.md', ''),
             title: title!,
             frontmatter: frontmatter!,
             markdown: result.value.toString(),
@@ -74,10 +78,7 @@ for (const file of files) {
         const x = renderToStaticMarkup(<App data={data} />);
 
         // write to file
-        await writeFile(
-            `./dist/${file.split('/').pop()?.replace('.md', '.html')}`,
-            x
-        );
+        await writeFile(`./dist/ensip/${filename.replace('.md', '.html')}`, x);
     } catch (error) {
         if (error instanceof TracedError) {
             console.log(error.error);
@@ -124,13 +125,29 @@ await writeFile(
 
 // Render public content
 
-const static_files = ['./public/index.css', './public/normalize.css'];
+const static_files = ['./public/index.css'];
+
+console.log('Processing styles');
 
 for (const file of static_files) {
     const fileData = await readFile(file, 'utf8');
 
+    // apply postcss
+    const processed = await postcss(postcssConfig.plugins).process(fileData, {
+        from: file,
+        to: 'dist/' + file.split('/').pop(),
+    });
+
     // write to file
-    await writeFile(`./dist/${file.split('/').pop()}`, fileData);
+    await writeFile(`./dist/${file.split('/').pop()}`, processed.css);
+
+    if (processed.map) {
+        console.log('Writing sourcemap');
+        await writeFile(
+            `./dist/${file.split('/').pop()}.map`,
+            processed.map.toString()
+        );
+    }
 }
 
 console.log('Preview built successfully!');
