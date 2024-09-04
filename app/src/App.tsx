@@ -1,19 +1,19 @@
 import type { FC } from 'react';
 
+import type { ENSIPData } from '.';
 import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
 import { Frame } from './Frame';
-import type { Frontmatter } from './specs/validateFrontmatter';
 
-export const App: FC<{ markdown: string; frontmatter: Frontmatter }> = ({
-    markdown,
-    frontmatter,
-}) => {
+export const App: FC<{ data: ENSIPData }> = ({ data }) => {
+    const { path, title, frontmatter, markdown } = data;
+
     return (
         <Frame>
             <article>
                 <Navbar />
                 <Header frontmatter={frontmatter} />
+                <h1>{title}</h1>
                 <div dangerouslySetInnerHTML={{ __html: markdown }} />
             </article>
         </Frame>

@@ -62,19 +62,16 @@ for (const file of files) {
             )
             .process(fileData);
 
-        ensips.push({
+        const data: ENSIPData = {
             path: directPath.split('/').pop()!.replace('.md', ''),
             title: title!,
             frontmatter: frontmatter!,
             markdown: result.value.toString(),
-        });
+        };
 
-        const x = renderToStaticMarkup(
-            <App
-                markdown={result.value.toString()}
-                frontmatter={frontmatter!}
-            />
-        );
+        ensips.push(data);
+
+        const x = renderToStaticMarkup(<App data={data} />);
 
         // write to file
         await writeFile(

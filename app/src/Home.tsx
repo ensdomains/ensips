@@ -14,7 +14,7 @@ export const Home: FC<{ ensips: ENSIPData[] }> = ({ ensips }) => {
                     {ensips.map(({ path, title }) => (
                         <li
                             key={path}
-                            data-X={title.toLowerCase().startsWith('ensip-x')}
+                            data-x={title.toLowerCase().startsWith('ensip-x')}
                         >
                             <a href={`/${path}`} className="link">
                                 {title}
