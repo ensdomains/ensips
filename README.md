@@ -4,7 +4,25 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 
 ## Proposal List
 
-> WIP
+- [ENSIP-1: ENS](https://docs.ens.domains/ensip/1)
+- [ENSIP-2: DNS-in-ENS](https://docs.ens.domains/ensip/2)
+- [ENSIP-3: Reverse Resolution](https://docs.ens.domains/ensip/3)
+- [ENSIP-4: Support for contract ABIs](https://docs.ens.domains/ensip/4)
+- [ENSIP-5: Text Records](https://docs.ens.domains/ensip/5)
+- [ENSIP-6: DNS-in-ENS](https://docs.ens.domains/ensip/6)
+- [ENSIP-7: Contenthash field](https://docs.ens.domains/ensip/7)
+- [ENSIP-8: Interface Discovery](https://docs.ens.domains/ensip/8)
+- [ENSIP-9: Multichain Address resolution](https://docs.ens.domains/ensip/9)
+- [ENSIP-10: Wildcard Resolution](https://docs.ens.domains/ensip/10)
+- [ENSIP-11: EVM compatible Chain Address Resolution](https://docs.ens.domains/ensip/11)
+- [ENSIP-12: Avatar Text Records](https://docs.ens.domains/ensip/12)
+- [ENSIP-13: SAFE Authentication For ENS](https://docs.ens.domains/ensip/13)
+- [ENSIP-14: On Chain Source Parameter](https://docs.ens.domains/ensip/14)
+- [ENSIP-15: ENS Name Normalization Standard](https://docs.ens.domains/ensip/15)
+- [ENSIP-16: Offchain Metadata](https://docs.ens.domains/ensip/16)
+- [ENSIP-17: Gasless DNS Resolution](https://docs.ens.domains/ensip/17)
+- [ENSIP-18: Profile Text Records](https://docs.ens.domains/ensip/18)
+- [ENSIP-19: EVM-chain Reverse Resolution](https://docs.ens.domains/ensip/19)
 
 ## Proposal Process
 
