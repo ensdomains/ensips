@@ -67,7 +67,7 @@ As well as allow for setting/removing/revoking credentials.
 From the front-end developer perspective reading verifiable credentials is as simple as (name, predicate):
 
 ```tsx
-const { credentials } = useVC('luc.eth', (c) => c.type == 'TelegramCredential');
+const { credentials } = useCredentials('luc.eth', (c) => c.type == 'TelegramCredential');
 ```
 
 Under the hood this will resolve to the `verifications` record, which is a `string[]` abi encoded.
