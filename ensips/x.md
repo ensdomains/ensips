@@ -13,8 +13,6 @@ ensip:
 
 This ENSIP aims to standardize the usage of [W3C Verifiable Credentials & Presentations](https://www.w3.org/TR/vc-data-model-2.0/) within ENS records.
 
-# Faulty second title
-
 ## Motivation
 
 # Faulty third title
