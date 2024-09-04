@@ -2,6 +2,8 @@
 
 This repository is a collection of ENSIPs (Ethereum Name Service Improvement Proposals) that have been submitted and are accepted as standard.
 
+This repository pertains to standards around the ENS protocol, for DAO governance proposals see [Agora](https://agora.ensdao.org).
+
 ## Proposal List
 
 - [ENSIP-1: ENS](https://docs.ens.domains/ensip/1) ([spec](./ensips/1.md))
@@ -30,9 +32,13 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 
 [Example PR](https://github.com/ensdomains/ensips/pull/4) - [Example Preview](https://template-ensip.ensips.pages.dev/ensip/x)
 
-- Please PR to `/ensips/x.md` with your proposal for a new ENSIP
+- Fork this repository and create a new branch
+- Create a new file in `/ensips/x.md` with your proposal for a new ENSIP, see [template.md](./template.md)
+- Submit a PR to this repository
+- Review process status will be updated via PR comments
 - PR's will be assigned an ensip number upon merge by a maintainer
-- README.md file is updated by a maintainer accordingly (please do not include in PR)
+- README.md file is updated by a maintainer
+- Profit!
 
 ### Submission Checklist
 
