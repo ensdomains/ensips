@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 
 import type { Frontmatter } from '.';
+import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
 
 export const App: FC<{ markdown: string; frontmatter: Frontmatter }> = ({
@@ -16,35 +17,7 @@ export const App: FC<{ markdown: string; frontmatter: Frontmatter }> = ({
             <body>
                 <article>
                     <Navbar />
-                    <div className="front space-y-4">
-                        <div>
-                            <b>Description</b>
-                            <div>{frontmatter.description}</div>
-                        </div>
-                        <div>
-                            <b>Status</b>
-                            <div>{frontmatter.ensip.status}</div>
-                        </div>
-                        <div>
-                            <b>Created</b>
-                            <div>{frontmatter.ensip.created}</div>
-                        </div>
-                        <div>
-                            <b>
-                                Author
-                                {frontmatter.contributors.length > 1 ? 's' : ''}
-                            </b>
-                            <ul>
-                                {frontmatter.contributors.map(
-                                    (contributor, index) => {
-                                        return (
-                                            <li key={index}>{contributor}</li>
-                                        );
-                                    }
-                                )}
-                            </ul>
-                        </div>
-                    </div>
+                    <Header frontmatter={frontmatter} />
                     <div dangerouslySetInnerHTML={{ __html: markdown }} />
                     <div>ENSIPs</div>
                 </article>

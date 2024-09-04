@@ -1,6 +1,7 @@
 {
     "type": "module",
     "scripts": {
+        "dev": "chokidar './src/**/*' '../ensips/*.md' --initial -c 'pnpm preview'",
         "build": "tsx src/index.tsx",
         "preview": "pnpm run build && pnpm vite preview",
         "lint": "eslint -c .eslintrc.json --ext .ts,.tsx ./src"
@@ -8,6 +9,7 @@
     "dependencies": {
         "@types/react": "^18.3.5",
         "@types/react-dom": "^18.3.0",
+        "chokidar-cli": "^3.0.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "remark": "^15.0.1",
