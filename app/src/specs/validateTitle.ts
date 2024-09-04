@@ -2,6 +2,11 @@
 import type { Plugin } from 'unified';
 import { z } from 'zod';
 
+// ENSIP-123: Title must match regex
+// or
+// ENSIP-X: Title must match regex
+const titleRegex = /ENSIP-(\d+|[Xx]):\s(.+)/;
+
 export const TitleZod = z.object({
     type: z.literal('heading', {
         description: 'First element must be a title',
@@ -41,6 +46,13 @@ export const extractTitle =
                 ''
             )
             .trim();
+
+        // title must match regex
+        if (!titleRegex.test(title)) {
+            throw new Error(
+                'Invalid title format, please format title as "ENSIP-X: Title" (PR\'s) or "ENSIP-123: Title" (after merge)'
+            );
+        }
 
         callback(title);
     };
