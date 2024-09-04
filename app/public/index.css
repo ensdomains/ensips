@@ -45,12 +45,13 @@ ul {
     padding: 0;
 }
 
-.ensip-list li a {
-}
+.ensip-list {
+    @apply space-y-4 pt-4;
 
-.ensip-list li[data-x='true'] {
-    a {
-        color: #de5999;
+    li[data-x='true'] {
+        a {
+            color: #de5999;
+        }
     }
 }
 
@@ -72,7 +73,7 @@ pre {
     overflow-x: auto;
     border: 1px solid #e1e4e8;
     border-radius: 8px;
-    
+
     max-width: 100%;
     overflow-x: auto;
 }
@@ -123,5 +124,4 @@ h1 {
     ul {
         @apply list-disc pl-6;
     }
-    
 }
