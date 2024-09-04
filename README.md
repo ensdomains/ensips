@@ -4,25 +4,25 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 
 ## Proposal List
 
-- [ENSIP-1: ENS](https://docs.ens.domains/ensip/1)
-- [ENSIP-2: DNS-in-ENS](https://docs.ens.domains/ensip/2)
-- [ENSIP-3: Reverse Resolution](https://docs.ens.domains/ensip/3)
-- [ENSIP-4: Support for contract ABIs](https://docs.ens.domains/ensip/4)
-- [ENSIP-5: Text Records](https://docs.ens.domains/ensip/5)
-- [ENSIP-6: DNS-in-ENS](https://docs.ens.domains/ensip/6)
-- [ENSIP-7: Contenthash field](https://docs.ens.domains/ensip/7)
-- [ENSIP-8: Interface Discovery](https://docs.ens.domains/ensip/8)
-- [ENSIP-9: Multichain Address resolution](https://docs.ens.domains/ensip/9)
-- [ENSIP-10: Wildcard Resolution](https://docs.ens.domains/ensip/10)
-- [ENSIP-11: EVM compatible Chain Address Resolution](https://docs.ens.domains/ensip/11)
-- [ENSIP-12: Avatar Text Records](https://docs.ens.domains/ensip/12)
-- [ENSIP-13: SAFE Authentication For ENS](https://docs.ens.domains/ensip/13)
-- [ENSIP-14: On Chain Source Parameter](https://docs.ens.domains/ensip/14)
-- [ENSIP-15: ENS Name Normalization Standard](https://docs.ens.domains/ensip/15)
-- [ENSIP-16: Offchain Metadata](https://docs.ens.domains/ensip/16)
-- [ENSIP-17: Gasless DNS Resolution](https://docs.ens.domains/ensip/17)
-- [ENSIP-18: Profile Text Records](https://docs.ens.domains/ensip/18)
-- [ENSIP-19: EVM-chain Reverse Resolution](https://docs.ens.domains/ensip/19)
+- [ENSIP-1: ENS](https://docs.ens.domains/ensip/1) ([spec](./ensips/1.md))
+- [ENSIP-2: DNS-in-ENS](https://docs.ens.domains/ensip/2) ([spec](./ensips/2.md))
+- [ENSIP-3: Reverse Resolution](https://docs.ens.domains/ensip/3) ([spec](./ensips/3.md))
+- [ENSIP-4: Support for contract ABIs](https://docs.ens.domains/ensip/4) ([spec](./ensips/4.md))
+- [ENSIP-5: Text Records](https://docs.ens.domains/ensip/5) ([spec](./ensips/5.md))
+- [ENSIP-6: DNS-in-ENS](https://docs.ens.domains/ensip/6) ([spec](./ensips/6.md))
+- [ENSIP-7: Contenthash field](https://docs.ens.domains/ensip/7) ([spec](./ensips/7.md))
+- [ENSIP-8: Interface Discovery](https://docs.ens.domains/ensip/8) ([spec](./ensips/8.md))
+- [ENSIP-9: Multichain Address resolution](https://docs.ens.domains/ensip/9) ([spec](./ensips/9.md))
+- [ENSIP-10: Wildcard Resolution](https://docs.ens.domains/ensip/10) ([spec](./ensips/10.md))
+- [ENSIP-11: EVM compatible Chain Address Resolution](https://docs.ens.domains/ensip/11) ([spec](./ensips/11.md))
+- [ENSIP-12: Avatar Text Records](https://docs.ens.domains/ensip/12) ([spec](./ensips/12.md))
+- [ENSIP-13: SAFE Authentication For ENS](https://docs.ens.domains/ensip/13) ([spec](./ensips/13.md))
+- [ENSIP-14: On Chain Source Parameter](https://docs.ens.domains/ensip/14) ([spec](./ensips/14.md))
+- [ENSIP-15: ENS Name Normalization Standard](https://docs.ens.domains/ensip/15) ([spec](./ensips/15.md))
+- [ENSIP-16: Offchain Metadata](https://docs.ens.domains/ensip/16) ([spec](./ensips/16.md))
+- [ENSIP-17: Gasless DNS Resolution](https://docs.ens.domains/ensip/17) ([spec](./ensips/17.md))
+- [ENSIP-18: Profile Text Records](https://docs.ens.domains/ensip/18) ([spec](./ensips/18.md))
+- [ENSIP-19: EVM-chain Reverse Resolution](https://docs.ens.domains/ensip/19) ([spec](./ensips/19.md))
 
 ## Proposal Process
 
@@ -45,9 +45,9 @@ This repository is a collection of ENSIPs (Ethereum Name Service Improvement Pro
 - Must have one `Copyright`, with body matching the template.md
 - Must not contain comments `<!-- -->`
 - Must have `description` in frontmatter
-- Must have `contributors` in frontmatter
+- Must have `contributors` in frontmatter (nick.eth)
 - Must have `ensip` in frontmatter
-  - Must have `created` under `ensip`
+  - Must have `created` under `ensip` (YYYY-MM-DD)
   - Must have `status` under `ensip` (draft, obsolete, final)
 
 ### General Formatting
