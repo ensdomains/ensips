@@ -10,10 +10,15 @@ export const Home: FC<{ ensips: ENSIPData[] }> = ({ ensips }) => {
             <article>
                 <Navbar />
                 <h1>ENSIPs</h1>
-                <ul>
+                <ul className="ensip-list">
                     {ensips.map(({ path, title }) => (
-                        <li key={path}>
-                            <a href={`/${path}`}>{title}</a>
+                        <li
+                            key={path}
+                            data-X={title.toLowerCase().startsWith('ensip-x')}
+                        >
+                            <a href={`/${path}`} className="link">
+                                {title}
+                            </a>
                         </li>
                     ))}
                 </ul>

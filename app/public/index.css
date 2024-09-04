@@ -3,6 +3,7 @@ body {
     background: #f7f7fa;
     font-family: 'Satoshi', sans-serif;
     font-size: 16px;
+    color: #1E2122;
 }
 
 article {
@@ -45,4 +46,22 @@ ul {
     list-style: none;
     margin: 0;
     padding: 0;
+}
+
+.ensip-list li a {
+
+}
+
+.ensip-list li[data-X=true] a {
+    color: #DE5999;
+}
+
+.link {
+    color: #3889FF;
+}
+
+.link:hover {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #056AFF;
 }
