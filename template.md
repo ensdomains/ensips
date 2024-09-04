@@ -11,7 +11,7 @@ ensip:
   status: draft
 ---
 
-# Title of the proposal
+# ENSIP-X: Title of the proposal
 
 ## Abstract
 
