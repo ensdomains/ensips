@@ -5,7 +5,6 @@ contributors:
 ensip:
   status: draft
   created: 2024-05-21
-test
 ---
 
 # ENSIP-20: Verifiable Credentials in ENS
