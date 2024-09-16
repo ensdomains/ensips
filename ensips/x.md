@@ -13,6 +13,8 @@ ensip:
 
 This ENSIP aims to standardize the usage of [W3C Verifiable Credentials & Presentations](https://www.w3.org/TR/vc-data-model-2.0/) within ENS records.
 
+# Test second heading
+
 ## Motivation
 
 With the increasing prevalence of self-custodial digital identity & attestation solutions, it is of importance to have a standardized way to publicly share verifiable credentials using your ENS profile.
