@@ -8,11 +8,8 @@ import html from 'remark-html';
 import postcssConfig from '../postcss.config.js';
 import { App } from './App';
 import { Home } from './Home';
-import {
-    type Frontmatter,
-    extractFrontmatter,
-} from './specs/validateFrontmatter';
-import { extractTitle } from './specs/validateTitle';
+import { validate } from './specs/index.js';
+import { type Frontmatter } from './specs/validateFrontmatter';
 import { TracedError } from './util/error';
 import { ENSIPNumberMatch } from './util/regex';
 
@@ -55,13 +52,8 @@ for (const file of files) {
             .use(remarkFrontMatter)
             .use(html)
             .use(
-                extractFrontmatter(directPath, (_frontmatter) => {
-                    frontmatter = _frontmatter;
-                })
-            )
-            .use(
-                extractTitle(directPath, (_found) => {
-                    title = _found;
+                validate(directPath, (returnData) => {
+                    ({ title, frontmatter } = returnData);
                 })
             )
             .process(fileData);
