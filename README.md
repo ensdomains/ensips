@@ -26,16 +26,16 @@ This repository pertains to standards around the ENS protocol, for DAO governanc
 - May have one `Backwards Compatibility`, with body
 - May have one `Security Considerations`, with body
 - Must have one `Copyright`, with body matching the template.md
-- Must not contain comments `<!-- -->`
 - Must have `description` in frontmatter
 - Must have `contributors` in frontmatter (nick.eth)
 - Must have `ensip` in frontmatter
   - Must have `created` under `ensip` (YYYY-MM-DD)
   - Must have `status` under `ensip` (draft, obsolete, final)
+- New ENSIPs must not have `ignoredRules`in frontmatter
 
 #### General Formatting
 
-- At most one enter in between sections
+- At most one newline in between sections
 - No unformattable characters (im looking at you apostrophes), exceptions include name formatting ensip's
 
 ## License

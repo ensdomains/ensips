@@ -1,6 +1,5 @@
 /* eslint-disable unicorn/consistent-function-scoping */
-import type { Plugin } from 'unified';
-import type { Parent } from 'unist';
+import type { Node, Parent } from 'unist';
 import { z } from 'zod';
 
 import { TracedError } from '../util/error';
@@ -31,56 +30,50 @@ export const TitleZod = z.object({
 
 export type TitleNode = z.infer<typeof TitleZod>;
 
-export const extractTitle =
-    (directPath: string, callback: (_found: string) => void): Plugin =>
-    () =>
-    (_tree) => {
-        const tree = _tree as any as Parent;
+export const extractTitle = (directPath: string, _tree: Node) => {
+    const tree = _tree as any as Parent;
 
-        // Count the number of h1 headings
-        const titleCount = tree.children.filter(
-            // @ts-ignore
-            (node) => node.type === 'heading' && node.depth === 1
-        ) as TitleNode[];
+    // Count the number of h1 headings
+    const titleCount = tree.children.filter(
+        // @ts-ignore
+        (node) => node.type === 'heading' && node.depth === 1
+    ) as TitleNode[];
 
-        if (titleCount.length > 1)
-            throw new TracedError(
-                'More then one h1 (#) heading found, please use h2 (##) or h3 (###) headings',
-                directPath,
-                titleCount[1]!.position.start.line,
-                titleCount[1]!.position.start.column,
-                titleCount[1]!.position.end.column
-            );
+    if (titleCount.length > 1)
+        throw new TracedError(
+            'More then one h1 (#) heading found, please use h2 (##) or h3 (###) headings',
+            directPath,
+            titleCount[1]!.position.start.line,
+            titleCount[1]!.position.start.column,
+            titleCount[1]!.position.end.column
+        );
 
-        const first = (
-            (tree as any)['children'] as [
-                {
-                    type: 'heading';
-                    depth: number;
-                    children: [{ type: 'text'; value: string }];
-                }
-            ]
-        ).shift();
+    const first = (
+        (tree as any)['children'] as [
+            {
+                type: 'heading';
+                depth: number;
+                children: [{ type: 'text'; value: string }];
+            }
+        ]
+    ).shift();
 
-        const titleNode = TitleZod.parse(first);
+    const titleNode = TitleZod.parse(first);
 
-        const title = titleNode.children
-            .reduce(
-                (accumulator, current) => accumulator + ' ' + current.value,
-                ''
-            )
-            .trim();
+    const title = titleNode.children
+        .reduce((accumulator, current) => accumulator + ' ' + current.value, '')
+        .trim();
 
-        // title must match regex
-        if (!titleRegex.test(title)) {
-            throw new TracedError(
-                'Invalid title format, please format title as "ENSIP-X: Title" (PR\'s) or "ENSIP-123: Title" (after merge)',
-                directPath,
-                titleNode.position.start.line,
-                titleNode.position.start.column,
-                titleNode.position.end.column
-            );
-        }
+    // title must match regex
+    if (!titleRegex.test(title)) {
+        throw new TracedError(
+            'Invalid title format, please format title as "ENSIP-X: Title" (PR\'s) or "ENSIP-123: Title" (after merge)',
+            directPath,
+            titleNode.position.start.line,
+            titleNode.position.start.column,
+            titleNode.position.end.column
+        );
+    }
 
-        callback(title);
-    };
+    return title;
+};

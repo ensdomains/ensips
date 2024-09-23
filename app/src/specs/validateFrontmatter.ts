@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/consistent-function-scoping */
-import type { Plugin } from 'unified';
+import type { Node } from 'unist';
 import { parse as parseYaml, YAMLParseError } from 'yaml';
 import { z, ZodError } from 'zod';
 
@@ -22,6 +22,7 @@ export type Frontmatter = {
         status: string;
         created: string;
     };
+    ignoredRules?: string[];
 };
 
 export const FrontMatterZod = z.object({
@@ -39,6 +40,7 @@ export const FrontMatterZod = z.object({
         status: z.enum(['draft', 'obsolete', 'final']),
         created: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     }),
+    ignoredRules: z.array(z.string()).optional(),
 });
 
 export const validateFrontmatter = (
@@ -77,17 +79,12 @@ export const validateFrontmatter = (
     }
 };
 
-export const extractFrontmatter =
-    (directPath: string, callback: (_found: Frontmatter) => void): Plugin =>
-    () =>
-    (tree) => {
-        const first = (
-            (tree as any)['children'] as [UnparsedFrontmatter]
-        ).shift();
+export const extractFrontmatter = (directPath: string, tree: Node) => {
+    const first = ((tree as any)['children'] as [UnparsedFrontmatter]).shift();
 
-        if (first && first.type === 'yaml' && first.value) {
-            callback(validateFrontmatter(first, directPath));
-        } else {
-            throw new Error('No frontmatter found');
-        }
-    };
+    if (first && first.type === 'yaml' && first.value) {
+        return validateFrontmatter(first, directPath);
+    } else {
+        throw new Error('No frontmatter found');
+    }
+};
