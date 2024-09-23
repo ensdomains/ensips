@@ -15,6 +15,11 @@ const HEADINGS = [
         slug: 'backwards-compatibility',
     },
     {
+        title: /Forwards Compatibility/,
+        required: false,
+        slug: 'forwards-compatibility',
+    },
+    {
         title: /Security Considerations/,
         required: false,
         slug: 'security-considerations',
