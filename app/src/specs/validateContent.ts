@@ -58,8 +58,6 @@ export const validateHeadings = (
         for (const requiredHeading of requiredHeadings) {
             const match = requiredHeading.title.test(value);
 
-            console.log('->', match, requiredHeading.title.source);
-
             if (match) {
                 // Found heading, nice
                 console.log(`Found heading \`${value}\``);
