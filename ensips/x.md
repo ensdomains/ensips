@@ -94,7 +94,7 @@ interface IVerifiableCredentialMultiResolver {
 
 After performing a removeCredential operation it is recommended to re-fetch the credentials record to ensure your app shows the correct order.
 
-## Considerations
+## Security Considerations
 
 ### Revocation & Expiration
 
