@@ -7,25 +7,38 @@ ensip:
   status: draft
 ---
 
-# ENSIP-X: Title of the proposal
+# ENSIP-X: EOA Chain Id
 
 ## Abstract
 
-A short description of the proposal outlining the purpose of the proposal and the changes it proposes.
+This ENSIP specifies a way to set an EOA/Fallback address for a name. This allows for users to set one address to be used for all chains, or as a fallback for when a chain-specific address record is not set.
 
 ## Motivation
 
-In your motivation you have room to explain why this proposal is important and why it is a good idea.
+With the rising interest and research around account abstraction, in addition to the maturation of the multi-chain ecosystem, there is a need for users to be able to set a single address to be used across all chains.
+
+For a simple EOA user, this means setting their address once, and never having to worry about it again.
+For more advanced users, this means that chain-specific records can be used for smart-contract wallets, and an EOA can be specified as fallback.
 
 ## Specification
 
-Your specification goes here and should be as detailed as possible.
-It is possible include images, diagrams, example payloads, requests, etc, please use markdown and links to ipfs or other resources.
-You can do this using `![image description goes here](https://ipfs.io/ipfs/...)`
+This ENSIP aims to extend the functionality introduced in [ENSIP-9](./9) and [ENSIP-11](./11) and simply relies on the same functionality.
 
-Or you can create links using `[text](https://eips.ethereum.org/EIPS/eip-137)`
+### CoinType for EOA
 
-Feel free to create subheadings as needed using the `###` and (sub sub sub headings) `####` markdown syntax.
+The standard CoinType for this proposed chain id is `2147483648`.
+
+This is derived from `evmChainIdToCoinType(0)`, as per [ENSIP-11](./11).
+
+### Resolution Order
+
+- first normal cointype lookup for the chain designated
+- then lookup for eoa chain id
+
+### Proposed Implementation
+
+- universal resolver magic
+- example client implementation
 
 ## Rationale
 
