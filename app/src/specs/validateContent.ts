@@ -5,32 +5,32 @@ import type { Node, Parent } from 'unist';
 import { TracedError } from '../util/error';
 
 const HEADINGS = [
-    { title: /Abstract/, required: true, slug: 'abstract' },
-    { title: /Motivation/, required: true, slug: 'motivation' },
-    { title: /Specification/, required: true, slug: 'specification' },
-    { title: /Rationale/, required: false, slug: 'rationale' },
+    { title: /^Abstract$/, required: true, slug: 'abstract' },
+    { title: /^Motivation$/, required: true, slug: 'motivation' },
+    { title: /^Specification$/, required: true, slug: 'specification' },
+    { title: /^Rationale$/, required: false, slug: 'rationale' },
     {
-        title: /Backwards Compatibility/,
+        title: /^Backwards Compatibility$/,
         required: false,
         slug: 'backwards-compatibility',
     },
     {
-        title: /Forwards Compatibility/,
+        title: /^Forwards Compatibility$/,
         required: false,
         slug: 'forwards-compatibility',
     },
     {
-        title: /Security Considerations/,
+        title: /^Security Considerations$/,
         required: false,
         slug: 'security-considerations',
     },
     {
-        title: /Appendix [\dA-Z]+: \w+/,
+        title: /^Appendix [\dA-Z]+: (\w\W?)+$/,
         required: false,
         allow_repeat: true,
         slug: 'appendix',
     },
-    { title: /Copyright/, required: true, slug: 'copyright' },
+    { title: /^Copyright$/, required: true, slug: 'copyright' },
 ];
 
 export const validateHeadings = (
