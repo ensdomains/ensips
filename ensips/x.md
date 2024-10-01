@@ -37,23 +37,22 @@ This is derived from `evmChainIdToCoinType(0)`, as per [ENSIP-11](./11).
 
 ### Proposed Implementation
 
-- universal resolver magic
-- example client implementation
+There are multiple routes around implementing this;
 
-<!-- ## Backwards Compatibility
+For the short-term; we can already use this specification in our apps today (see Appendix A).
+Adoption of this method is encouraged as it is future-proof, and can be easily updated in the future.
 
-Optional backwards compatibility section.
-Here you can explain how this proposal affects existing systems.
+For the smoothest implementation, we can leverage the universal resolver to handle this functionality for us.
+This would mean no additional code is needed, and we can use the regular one-liners you are used to.
+
+## Backwards Compatibility
+
+This proposal is backwards compatible with the existing `addr(node, coinType)` functionality, and simply adds additional fallback behavior.
 
 ## Forwards Compatibility
 
-Optional forwards compatability section.
-Here you can explain how this proposal affects future systems, or potential upgrade paths.
-
-## Security Considerations
-
-Optional security considerations section. -->
-
+Implementing this proposal following Appendix A allows for a smooth transition to the new functionality.
+Later implementations can be reduced down to just a single eth call.
 
 ## Appendix A: Example Implementation
 
