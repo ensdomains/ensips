@@ -173,13 +173,50 @@ The use of reverts with custom errors allows for a consistent handling of offcha
 
 The proposed flow is designed to make the Resolver deployed on the L1 responsible for redirecting the requests to the given offchain storage, enabling the communication of any dapps (e.g. ENS dapp) in a standard way.
 
-![L2 subdomain registering](./images/l2.register.png)
+#### L2 subdomain registering
 
-L2 subdomain registering
+```mermaid
+sequenceDiagram
+    participant Client
+    participant UniversalResolver as Universal Resolver
+    participant L1Resolver as L1 Resolver
+    participant Gateway
+    participant L2SubdomainController as L2 Subdomain Controller
 
-![Database subdomain registering](./images/db.register.png)
+    Client->>UniversalResolver: findResolver(name)
+    UniversalResolver->>Client: resolver address
+    Client->>L1Resolver: registerParams(name, duration)
+    L1Resolver->>Client: revert OffchainLookup
+    Client->>Gateway: HTTP request
+    Gateway->>L2SubdomainController: getStorageSlot
+    L2SubdomainController->>Gateway: storage proof
+    Gateway->>Client: storage proof
+    Client->>L1Resolver: registerParams callback
+    L1Resolver->>Client: (price, commitTime, extraData)
+    Client->>L1Resolver: register{value: price}(...args)
+    L1Resolver->>Client: revert StorageHandledByL2(chainId, contract)
+    Client->>L2SubdomainController: register{value: price}(...args)
+```
 
-Database subdomain registering
+### Database subdomain registering
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant UniversalResolver as Universal Resolver
+    participant DatabaseResolver as Database Resolver
+    participant Gateway
+    participant Database
+
+    Client->>UniversalResolver: findResolver(name)
+    UniversalResolver->>Client: resolver address
+    Client->>DatabaseResolver: register(...args)
+    DatabaseResolver->>Client: revert StorageHandledByDB(domain, url, message)
+    Client->>Client: sign request with EIP-712
+    Client->>Gateway: register(request, signature)
+    Gateway->>Gateway: recover signer
+    Gateway->>Database: DB Insert
+```
 
 ## Backwards Compatibility
 
