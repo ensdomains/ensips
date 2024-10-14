@@ -36,7 +36,7 @@ interface IUniversalResolver {
 }
 ```
 
-### `resolve`
+### resolve
 
 The `resolve` function should be used by any ENS client as a complete replacement for offchain resolution methods.
 
@@ -100,7 +100,7 @@ The output of this function is:
 - `bytes`: The data returned by the resolver
 - `address`: The address of the resolver that resolved the name
 
-### `reverse`
+### reverse
 
 The `reverse` function can be used by any ENS client as a complete replacement for offchain reverse name resolution methods.
 
