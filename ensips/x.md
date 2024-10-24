@@ -34,8 +34,12 @@ This can be derived from `0x80000000 | 0` or `evmChainIdToCoinType(0)` , as per 
 
 ### Resolution Order
 
-- first normal cointype lookup for the chain designated
-- then lookup for EOA Chain Id
+The resolution process remains as normal however now an extra lookup can be implemented client-side (or via proposed public resolver implementation).
+
+The initial lookup is done for the chainId the user is currently on / interested in.
+For example for Optimism (EVM Chain Id 10), the initial lookup would be for `coinType = 0x80000000 | 10`.
+
+If the lookup does not result in an address, a second lookup is done for the EOA Chain Id.
 
 ### Proposed Implementation
 
