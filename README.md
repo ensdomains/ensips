@@ -38,6 +38,16 @@ This repository pertains to standards around the ENS protocol, for DAO governanc
 - At most one newline in between sections
 - No unformattable characters (im looking at you apostrophes), exceptions include name formatting ensip's
 
+#### Editors
+
+The current ENSIP editors are:
+
+- Nick Johnson (@Arachnid)
+- Prem Makeig (@nxt3d)
+- Steve Katzman (@stevieraykatz)
+
+ENSIP editors are tasked with process of reviewing ENSIPs for technical soundness, formatting issues, and correcting spelling, grammar, and code style.
+
 ## License
 
 All ENSIPs are licensed under the [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) license.
