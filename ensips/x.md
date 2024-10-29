@@ -43,72 +43,21 @@ If the lookup does not result in an address, a second lookup is done for the EOA
 
 ### Proposed Implementation
 
-There are multiple routes around implementing this;
+There are multiple routes we considered around implementing this; client-side, or via a public resolver implementation.
 
-For the short-term; we can already use this specification in our apps today (see Appendix A).
-Adoption of this method is encouraged as it is future-proof, and can be easily updated in the future.
-
-For the smoothest implementation, we can leverage the public resolver to handle this functionality for us.
+For the smoothest implementation, leveraging the public resolver to handle this functionality for us seems ideal.
 This would mean no additional code is needed, and we can use the regular one-liners you are used to.
 
 ### Public Resolver
 
 The public resolver could choose to implement a fallback mechanism for EOA addresses.
-Such that when a `coinType` lookup occurs, and the resolver does not find an address record, it will return the EOA address.
+Such that when a `coinType` lookup occurs (for an EVM-compatible chain), and the resolver does not find an address record, it will return the EOA address.
 
 This allows for additional flexibility allowing users to set a fallback address for all evm-compatible chains.
 
 ## Backwards Compatibility
 
 This proposal is backwards compatible with the existing `addr(node, coinType)` functionality, and simply adds additional fallback behavior.
-
-## Forwards Compatibility
-
-Implementing this proposal following Appendix A allows for a smooth transition to the new functionality.
-Later implementations can be reduced down to just a single eth call.
-
-## Appendix A: Example Implementation
-
-Do note that the implementations below are the current implementations, and may change in the future.
-
-### Viem Example
-
-```typescript
-import { getEnsAddress } from "viem/actions";
-import { mainnet, optimism } from "viem/chains";
-import { createPublicClient, http } from "viem";
-import { evmChainIdToCoinType } from '@ensdomains/address-encoder/utils';
-
-const client = createPublicClient({ transport: http(), chain: mainnet })
-
-const name = "luc.eth";
-const targetChain = optimism;
-
-// First lookup the targetChain address
-const target_address = await getEnsAddress(client, { name, coinType: evmChainIdToCoinType(targetChain.id) });
-
-// Then lookup the EOA address if needed
-const address = target_address || await getEnsAddress(client, { name, coinType: evmChainIdToCoinType(0) });
-```
-
-### Wagmi Example
-
-```typescript
-import { useEnsAddress } from "wagmi";
-
-const { data: resolvedAddress } = useEnsAddress({
-  name,
-  coinType: evmChainIdToCoinType(chain.id)
-});
-
-const { data: fallbackAddress } = useEnsAddress({
-  name,
-  coinType: evmChainIdToCoinType(0),
-  enabled: !resolvedAddress
-});
-
-const address = resolvedAddress || fallbackAddress;
-```
 
 ## Copyright
 
