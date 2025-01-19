@@ -1,14 +1,14 @@
 ---
 # Description of the proposal
 description: Some description about the proposal
-# List of ens names or github handles of contributors
-contributors:
+# List of ENS names or github handles of contributors
+authors:
   - nick.eth
-ensip:
+
   # Date of creation
   created: 2024-01-01
-  # Status of the proposal, draft by default, updated by the editors
-  status: draft
+  # Status of the proposal, Draft by default, updated by the editors
+  status: Draft
 ---
 
 # ENSIP-X: Title of the proposal

@@ -19,7 +19,7 @@ export type Frontmatter = z.infer<typeof FrontMatterZod>;
 
 export const FrontMatterZod = z.object({
     description: z.string().min(5).max(160),
-    contributors: z
+    authors: z
         .array(
             z
                 .string()
@@ -28,10 +28,8 @@ export const FrontMatterZod = z.object({
         )
         .min(1)
         .max(10),
-    ensip: z.object({
-        status: z.enum(['draft', 'obsolete', 'final']),
-        created: z.date(),
-    }),
+    status: z.enum(['Draft', 'Obsolete', 'Final']),
+    created: z.date(),
     ignoredRules: z.array(z.string()).optional(),
 });
 
