@@ -15,7 +15,14 @@ export const Header: FC<{ frontmatter: Frontmatter }> = ({ frontmatter }) => {
             </div>
             <div>
                 <b>Created</b>
-                <div>{frontmatter.ensip.created}</div>
+                <div>
+                    {frontmatter.ensip.created.toLocaleDateString('UTC', {
+                        timeZone: 'UTC',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                    })}
+                </div>
             </div>
             <div>
                 <b>

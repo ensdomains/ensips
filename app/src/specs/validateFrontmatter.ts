@@ -15,15 +15,7 @@ export type UnparsedFrontmatter = {
     };
 };
 
-export type Frontmatter = {
-    description: string;
-    contributors: string[];
-    ensip: {
-        status: string;
-        created: string;
-    };
-    ignoredRules?: string[];
-};
+export type Frontmatter = z.infer<typeof FrontMatterZod>;
 
 export const FrontMatterZod = z.object({
     description: z.string().min(5).max(160),
@@ -38,7 +30,7 @@ export const FrontMatterZod = z.object({
         .max(10),
     ensip: z.object({
         status: z.enum(['draft', 'obsolete', 'final']),
-        created: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        created: z.date(),
     }),
     ignoredRules: z.array(z.string()).optional(),
 });
@@ -48,8 +40,9 @@ export const validateFrontmatter = (
     directPath: string
 ): Frontmatter => {
     try {
-        // @ts-ignore
-        const parsed = parseYaml(frontmatter.value as string) as Frontmatter;
+        const parsed = parseYaml(frontmatter.value as string, {
+            customTags: ['timestamp'],
+        }) as Frontmatter;
 
         return FrontMatterZod.parse(parsed);
     } catch (error) {
