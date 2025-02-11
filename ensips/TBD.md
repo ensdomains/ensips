@@ -31,12 +31,14 @@ The Wildcard Writing standard is defined by multiple interfaces, which, except f
 /// @param owner The address that will own the registered name
 /// @param duration The length of time in seconds to register the name for
 /// @param secret The secret to be used for the registration based on commit/reveal
+/// @param resolver The address of the resolver used as entrypoint on the L1
 /// @param extraData Additional registration data encoded as bytes
 struct RegisterRequest {
     bytes name;
     address owner;
     uint256 duration;
     bytes32 secret;
+    address resolver;
     bytes extraData;
 }
 
@@ -197,6 +199,7 @@ struct RegisterRequest {
     address owner;
     uint256 duration;
     bytes32 secret;
+    address resolver;
     bytes extraData;
 }
 
@@ -210,6 +213,7 @@ Parameters:
 - `owner`: subdomain owner's address
 - `duration`: the duration in seconds of the registration
 - `secret`: random seed to be used for commit/reveal
+- `resolver`: the address of the resolver used as entrypoint on the L1
 - `extraData`: any additional data (e.g. signatures from an external source)
 
 **Behavior:**
