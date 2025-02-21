@@ -7,7 +7,7 @@ contributors:
 ensip: TBD
 created: '2024-08-14'
 status: draft
-required: ERC-712, [EIP-XXXX](https://ethereum-magicians.org/t/operation-router/22633)
+required: ERC-712, [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633)
 ignoredRules: ["missing:copyright"]
 ---
 
@@ -113,7 +113,7 @@ interface OffchainCommitable {
 
 ### Client flow
 
-It relies on the approach specified by the [EIP-XXXX](https://ethereum-magicians.org/t/operation-router/22633) to first gather the required data for the subsequent transaction to be made directly to the given entity, a contract or an offchain gateway.
+It relies on the approach specified by the [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633) to first gather the required data for the subsequent transaction to be made directly to the given entity, a contract or an offchain gateway.
 
 The onchain flow is composite as follows:
 
@@ -218,7 +218,7 @@ Parameters:
 
 **Behavior:**
 
-- **L1 Resolver**: it MUST revert with the respective error specified by the [EIP-XXXX](https://ethereum-magicians.org/t/operation-router/22633).
+- **L1 Resolver**: it MUST revert with the respective error specified by the [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633).
 - **L2 contract / Gateway**: it MUST register the subdomain.
 
 Although implementing the `register` on the layer 1 contract is OPTIONAL given that it is already handled by the `getOperationHandler`, it is possible for the contract to implement it directly in order to expose it on its ABI. If so, it MUST revert with the same error it would if called through the `getOperationHandler`.
@@ -373,7 +373,7 @@ sequenceDiagram
 
 ## Rationale
 
-The proposed interfaces standardize the management of offchain domains within the ENS ecosystem. By leveraging [EIP-XXXX](https://ethereum-magicians.org/t/operation-router/22633) for offchain writing and maintaining compatibility with existing ENS components, this proposal ensures a seamless integration of offchain domain management into current ENS workflows.
+The proposed interfaces standardize the management of offchain domains within the ENS ecosystem. By leveraging [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633) for offchain writing and maintaining compatibility with existing ENS components, this proposal ensures a seamless integration of offchain domain management into current ENS workflows.
 
 ## Backwards Compatibility
 
