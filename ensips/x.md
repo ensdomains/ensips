@@ -19,7 +19,7 @@ This standard establishes [custom errors](https://docs.soliditylang.org/en/lates
 
 ## Motivation
 
-ENS and the broader Ethereum ecosystem are becoming increasingly multichain.  [ERC-3668](https://eips.ethereum.org/EIPS/eip-3668) enabled crosschain state access and ENSIP-10 allows a complete namespace to be bridged from another chain.
+ENS and the broader Ethereum ecosystem are becoming increasingly multichain.  [ERC-3668](https://eips.ethereum.org/EIPS/eip-3668) enables offchain access and ENSIP-10 allows a complete namespace to be bridged from another chain.
 
 Currently, it is difficult to programmatically disambiguate between resolution responses that have different end-user consequences.  Clients are forced interpret `null` and resolution reverts as *this record does not exist*.  There is no reliable technique to check if a name exists.
 
@@ -49,15 +49,15 @@ Selector: [`0x9e2fd406`](https://adraffy.github.io/keccak.js/test/demo.html#algo
 
 This error should be raised when the supplied `name` does not exist, which could happen for a variety of reasons:
 
-* `name` is incorrectly encoded
-* `name` cannot be parsed &mdash; eg. `zzz.3c.reverse` where `zzz` is expected to be 40 hexadecimal characters.
-* `name` does not exist &mdash; eg. `__dne.base.eth` where `__dne` is not a registered  [Basename](https://www.base.org/names).
+* incorrectly encoded
+* cannot be parsed &mdash; eg. `zzz.3c.reverse` where `zzz` is expected to be 40 hexadecimal characters.
+* does not exist &mdash; eg. `__dne.base.eth` where `__dne` is not a registered  [Basename](https://www.base.org/names).
 
 When existence is unknown, a `null` response is preferable to a false-positive revert.
 
 ### Revert Priority
 
-ENSIP-10 [states](./10.md#specification) *the function MUST either return valid return data for that function, or revert if it is not supported.*  When both situations apply, `UnknownResolverProfile` MUST be raised before `Unreachable`.
+ENSIP-10 [states](./10.md#specification) *"the function MUST either return valid return data for that function, or revert if it is not supported."*  When both errors apply, `UnknownResolverProfile` MUST be raised before `Unreachable`.
 
 ## Rationale
 
