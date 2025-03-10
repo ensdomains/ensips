@@ -8,7 +8,7 @@ contributors:
 ensip:
     created: '2024-08-14'
     status: draft
-    required: ERC-712, [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633)
+    required: ERC-712, [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633), [EIP-7528](https://eips.ethereum.org/EIPS/eip-7528)
 ignoredRules: ["missing:copyright"]
 ---
 
