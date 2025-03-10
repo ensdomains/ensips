@@ -9,6 +9,8 @@ ensip:
     status: draft
 ---
 
+# Wildcard Writing
+
 ## Abstract
 
 This ENSIP proposes a standardized mechanism for managing offchain domains within the Ethereum Name Service (ENS) ecosystem. It addresses the growing trend of storing domains off the Ethereum blockchain to reduce transaction fees while maintaining compatibility with existing ENS components. The proposal outlines methods for domain registration, transferring, and setting records, ensuring a consistent approach to offchain domain management.
