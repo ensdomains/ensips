@@ -1,5 +1,4 @@
 ---
-title: Wildcard Writing
 description: A standardized implementation for managing offchain domains using an External Resolver
 contributors:
     - netto.eth
@@ -8,7 +7,6 @@ contributors:
 ensip:
     created: '2024-08-14'
     status: draft
-    required: ERC-712, [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633), [EIP-7528](https://eips.ethereum.org/EIPS/eip-7528)
 ---
 
 ## Abstract
@@ -20,6 +18,12 @@ This ENSIP proposes a standardized mechanism for managing offchain domains withi
 With the acceptance of CCIP-Read by the Ethereum community, there has been a notable shift towards storing domains in locations other than the Ethereum blockchain to avoid high transaction fees. This shift has revealed a significant gap: the lack of standardized methods for managing offchain domains. By establishing a standardized offchain resolver implementation and user flow, we can ensure a consistent approach enabling applications that support this ENSIP flow to integrate this feature and enhance user experience seamlessly, increasing scalability, providing cost-effective solutions, and reducing client complexity by providing a common way to interact with all the offchain providers.
 
 ## Specification
+
+This ENSIP relies on the following standards:
+
+- [ERC-712](https://eips.ethereum.org/EIPS/eip-712) Typed structured data
+- [EIP-7884](https://ercs.ethereum.org/ERCS/erc-7884) Operation Router
+- [EIP-7528](https://eips.ethereum.org/EIPS/eip-7528) Token Standard for Fungible Gas
 
 ### Wildcard Writing interface
 
