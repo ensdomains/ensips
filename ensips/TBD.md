@@ -9,7 +9,6 @@ ensip:
     created: '2024-08-14'
     status: draft
     required: ERC-712, [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633), [EIP-7528](https://eips.ethereum.org/EIPS/eip-7528)
-ignoredRules: ["missing:copyright"]
 ---
 
 ## Abstract
@@ -396,3 +395,7 @@ The data related to domains stored in any place other than Ethereum SHOULD be fe
 4. The offchain storage of domain information introduces potential risks related to data availability and integrity. Implementers SHOULD consider redundancy and data verification mechanisms to mitigate these risks.
 
 Further security analysis and auditing are RECOMMENDED before deploying this system in a production environment, with special attention given to the unique security considerations of both onchain and offchain implementations.
+
+## Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
