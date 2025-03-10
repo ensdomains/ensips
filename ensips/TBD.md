@@ -2,12 +2,13 @@
 title: Wildcard Writing
 description: A standardized implementation for managing offchain domains using an External Resolver
 contributors:
-- netto.eth
-- pikonha.eth
-ensip: TBD
-created: '2024-08-14'
-status: draft
-required: ERC-712, [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633)
+    - netto.eth
+    - pikonha.eth
+    - nick.eth
+ensip:
+    created: '2024-08-14'
+    status: draft
+    required: ERC-712, [EIP-7884](https://ethereum-magicians.org/t/operation-router/22633)
 ignoredRules: ["missing:copyright"]
 ---
 
