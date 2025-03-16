@@ -73,7 +73,7 @@ Clients can utilize this information to improve the resolution experience.  All 
 
 This proposal does not alter the resolution process, it only supplies additional error information when a name cannot be resolved.
 
-* Resolvers that return `null` when queried  with an unsupported resolver profile should be redeployed.
+* Resolvers that return `null` when queried with an unsupported resolver profile should be redeployed.
 * Resolvers that follow this specification but raise a different error do not require redeployment.
 
 ## Security Considerations
