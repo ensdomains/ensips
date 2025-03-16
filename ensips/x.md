@@ -27,6 +27,7 @@ The BGP has the following Solidity interface:
 
 ```solidity
 interface IBatchGateway {
+	// selector: 0x01800152
     error HttpError(uint16 status, string message);
 
     struct Request {
@@ -35,6 +36,7 @@ interface IBatchGateway {
         bytes callData;
     }
 
+	// selector: 0xa780bab6
     function query(
         Request[] memory requests
     ) external view returns (bool[] memory failures, bytes[] memory responses);
