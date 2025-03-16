@@ -45,9 +45,9 @@ interface IBatchGateway {
 
 	```
 	OffchainLookup:                  Request:
-	    address sender;      ===>       address sender;
-	    string[] urls;       ===>       string[] urls;
-	    bytes callData;      ===>       bytes callData;
+	    address sender; --------------> address sender;
+	    string[] urls; ---------------> string[] urls;
+	    bytes callData; --------------> bytes callData;
 	    bytes4 callbackFunction;
 	    bytes extraData;
 	```
@@ -74,14 +74,14 @@ interface IBatchGateway {
 
 ### Developer Notes
 
-* All compliant BGP gateways are **equivalent**.  If multiple BGP gateways are supplied, their process order can be arbitrary.
-	* If the placeholder URL is present, it should be preferred and the other gateways can be ignored.  
+* All compliant BGP gateways are **equivalent**.  If multiple BGP gateways are supplied, their process order may be arbitrary.
+	* If the placeholder URL is present, it should be preferred and the other gateways should be ignored.  
 
-* An `OffchainLookup` with `n` URLs can be split into a single BGP request containing `n` requests, each with a single URL.
+* An `OffchainLookup` with `n` URLs may be split into a single BGP request containing `n` requests, each with a single URL.
 
 ## Rationale
 
-The BGP should be standardized so local versions can be implemented client-side.
+The BGP should be standardized so local versions may be implemented client-side.
 
 ## Backwards Compatibility
 
@@ -89,9 +89,9 @@ The `UniversalResolver` is the only known contract that uses the BGP.  Its ABI s
 
 ## Security Considerations
 
-* A local BGP gateway is **always preferable**, as a centralized BGP gateway leaks information and adds latency.
+* A local BGP gateway is **always preferable** as a centralized BGP gateway leaks information and adds latency.
 
-* BGP gateways **should not be trusted**.  Each individual `OffchainLookup` should secure its own protocol.
+* BGP gateways **should not be trusted**.  Each individual `OffchainLookup` must secure its own protocol.
 
 
 ## Copyright
