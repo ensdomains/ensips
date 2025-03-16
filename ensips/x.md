@@ -15,9 +15,9 @@ This standard establishes the Batch Gateway Protocol (BGP).
 
 ## Motivation
 
-[EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) describes a serial `OffchainLookup` mechanism.  To perform more than one `OffchainLookup`, they must be handled in sequence.
+[EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) describes a serial `OffchainLookup` mechanism.  To perform more than one `OffchainLookup`, they must be preformed in sequence.
 
-This proposal standardizes an existing ENS solution, colloquially called the "Batch Gateway", utilized first by the [`UniversalResolver`](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/utils/UniversalResolver.sol).  It is effectively `Promise.allSettled()` for a sequence of `OffchainLookup` reverts.
+This proposal standardizes an existing ENS solution, colloquially called the "Batch Gateway", utilized first by the [`UniversalResolver`](https://etherscan.io/address/0xce01f8eee7E479C928F8919abD53E553a36CeF67#code).  It is effectively `Promise.allSettled()` for a sequence of `OffchainLookup` reverts.
 
 An additional benefit of the BGP is that the EIP-3668 protocol does not terminate if an inner `OffchainLookup` cannot be satisfied, and instead returns an error for that specific request.
 
@@ -86,7 +86,7 @@ The BGP should be standardized so local BGP implementations are available in cli
 
 ## Backwards Compatibility
 
-The `UniversalResolver` is the only known contract that uses the BGP.  Its ABI supports client-supplied gateways.  In nearly all implementations, clients utilizing the `UniversalResolver` are using the default gateways.
+The `UniversalResolver` is the only known contract that uses the BGP.  Its design permits client-supplied gateways.  In nearly all implementations, clients are using the default.
 
 Using a local BGP gateway and processing the placeholder URL is both a [privacy and latency improvement](#security-considerations).
 
