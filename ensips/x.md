@@ -27,7 +27,7 @@ The BGP has the following Solidity interface:
 
 ```solidity
 interface IBatchGateway {
-	error HttpError(uint16 status, string message);
+    error HttpError(uint16 status, string message);
 
     struct Request {
         address sender;
@@ -45,11 +45,11 @@ interface IBatchGateway {
 
 	```
 	OffchainLookup:                  Request:
-		address sender;      ===>       address sender;
-		string[] urls;       ===>       string[] urls;
-		bytes callData;      ===>       bytes callData;
-		bytes4 callbackFunction;
-		bytes extraData;
+	    address sender;      ===>       address sender;
+	    string[] urls;       ===>       string[] urls;
+	    bytes callData;      ===>       bytes callData;
+	    bytes4 callbackFunction;
+	    bytes extraData;
 	```
 
 1. Revert with a new `OffchainLookup()`, using `abi.encodeCall(IBatchedGateway.query, <array of requests>)` as the calldata.
