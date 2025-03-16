@@ -1,5 +1,5 @@
 ---
-description: Batch Gateway
+description: Batch Gateway Protocol
 contributors:
   - raffy.eth
 ensip:
@@ -7,7 +7,7 @@ ensip:
   status: draft
 ---
 
-# ENSIP-X: Batch Gateway
+# ENSIP-X: Batch Gateway Protocol
 
 ## Abstract
 
