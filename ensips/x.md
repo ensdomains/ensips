@@ -15,7 +15,7 @@ This standard establishes the Batch Gateway Protocol (BGP).
 
 ## Motivation
 
-[ERC-3668](https://eips.ethereum.org/EIPS/eip-3668) describes a singular `OffchainLookup` mechanism.  To perform more than one `OffchainLookup`, they must be handled in sequence.
+[EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) describes a singular `OffchainLookup` mechanism.  To perform more than one `OffchainLookup`, they must be handled in sequence.
 
 This proposal standardizes an existing ENS solution, colloquially called the "Batch Gateway", utilized first by the [`UniversalResolver`](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/utils/UniversalResolver.sol).  It is effectively `Promise.allSettled()` for a sequence of `OffchainLookup` reverts.
 
@@ -70,16 +70,16 @@ interface IBatchGateway {
 
 * `responses[i]` should have the calldata of response.
 
-* If an HTTP error is encountered, encode it using `HTTPError()`.
+* If an HTTP error is encountered, encode it using `HTTPError`.
 
 * If the URLs are invalid, cannot be fetched, or some other problem occurs, use `Error(string)`.
 
 ### Developer Notes
 
-* All compliant BGP gateways are **equivalent**.  If multiple BGP gateways are supplied, their process order may be arbitrary.
-	* If the placeholder URL is present, it should be preferred and the other gateways should be ignored.  
+* All compliant BGP gateways are **equivalent**.  If multiple BGP gateways are supplied, the process order is undefined.
+	* If the placeholder URL is present, it should be preferred and the other gateways ignored.
 
-* An `OffchainLookup` with `n` URLs may be split into a single BGP request containing `n` requests, each with a single URL.
+* An `OffchainLookup` with `n` URLs may be split into a single BGP request, containing `n` requests, each with a single URL.
 
 ## Rationale
 
