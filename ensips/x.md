@@ -33,7 +33,7 @@ interface IBatchGateway {
     struct Request {
         address sender;
         string[] urls;
-        bytes callData;
+        bytes data;
     }
 
 	// selector: 0xa780bab6
@@ -43,18 +43,9 @@ interface IBatchGateway {
 }
 ```
 
-1. Given multiple `OffchainLookup()` reverts, translate each error data into a `Request` struct.
+1. Given an array of `OffchainLookup()` reverts, transform each error into a `Request`.
 
-	```
-	OffchainLookup:                  Request:
-	    address sender; --------------> address sender;
-	    string[] urls; ---------------> string[] urls;
-	    bytes callData; --------------> bytes callData;
-	    bytes4 callbackFunction;
-	    bytes extraData;
-	```
-
-1. Revert `OffchainLookup()` with `abi.encodeCall(IBatchedGateway.query, <array of requests>)` as the calldata.
+1. Revert `OffchainLookup()` with `abi.encodeCall(IBatchedGateway.query, (<array of requests>))` as the calldata.
 
 	* The reverter must provide its own BGP gateway(s).
 
@@ -68,7 +59,7 @@ interface IBatchGateway {
 
 * `failures[i]` is `false` if the request was a success according to EIP-3668.
 
-* `responses[i]` should have the data of the response or error.
+* `responses[i]` is the response or error data.
 
 * If an HTTP error is encountered, encode it using `HTTPError`.
 
@@ -76,7 +67,7 @@ interface IBatchGateway {
 
 ### Developer Notes
 
-* All compliant BGP gateways are **equivalent**.  If the placeholder URL is present, the client should utilize the local gateway.
+* All compliant BGP gateways are **equivalent**.  If the placeholder URL is present, the client should use the local gateway.
 
 * An `OffchainLookup` with `n` URLs may be split into a single BGP request, containing `n` requests, each with a single URL.
 
@@ -88,7 +79,7 @@ The BGP should be standardized so local BGP implementations are available in cli
 
 The `UniversalResolver` is the only known contract that uses the BGP.  Its design permits client-supplied gateways.  In nearly all implementations, clients are using the default.
 
-Using a local BGP gateway and processing the placeholder URL is both a [privacy and latency improvement](#security-considerations).
+Using a local BGP gateway and processing the placeholder URL is a privacy and latency improvement.
 
 ## Security Considerations
 
