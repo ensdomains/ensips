@@ -16,7 +16,7 @@ This ENSIP defines a universal entrypoint for resolving ENS names, via an interf
 ## Motivation
 
 The process of resolving ENS names traditionally requires multiple onchain calls, and that an implementing developer has in-depth knowledge of ENS.
-This is becoming more prevalent over time, especially with the introduction of wildcard resolution (ENSIP-10), and more recently cross-chain reverse resolution (ENSIP-19).
+Resolution is becoming more involved over time, especially with the introduction of wildcard resolution (ENSIP-10), and more recently cross-chain reverse resolution (ENSIP-19).
 These factors mean there is a relatively high burden to implement ENS, with high latency, and a large amount of developer hours to spend to understand and implement the correct resolution process.
 
 Given these factors, there are significant incentives for incorrect/incomplete ENS implementations, or implementations that do not rely on Ethereum as the source of truth.
