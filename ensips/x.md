@@ -15,9 +15,9 @@ This standard establishes the Batch Gateway Offchain Lookup Protocol (BGOLP).
 
 ## Motivation
 
-[EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) describes a serial `OffchainLookup` mechanism.  To perform more than one `OffchainLookup`, they must be preformed in sequence.
+[EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) describes a serial `OffchainLookup` mechanism.  To perform more than one `OffchainLookup`, lookups can be preformed in sequence using recursive calls.
 
-This proposal standardizes an existing ENS solution, colloquially called the "Batch Gateway", utilized first by the [`UniversalResolver`](https://etherscan.io/address/0xce01f8eee7E479C928F8919abD53E553a36CeF67#code).  It is effectively `Promise.allSettled()` for a sequence of `OffchainLookup` reverts.
+This proposal standardizes an existing ENS solution, colloquially called the "Batch Gateway", utilized first by the [`UniversalResolver`](https://etherscan.io/address/0xce01f8eee7E479C928F8919abD53E553a36CeF67#code).  It is effectively [`Promise.allSettled()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) for a sequence of `OffchainLookup` reverts.
 
 An additional benefit of the BGOLP is that the EIP-3668 protocol does not terminate if an inner `OffchainLookup` cannot be satisfied, and instead returns an error for that specific request.
 
