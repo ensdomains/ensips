@@ -106,7 +106,9 @@ The `reverse` function can be used by any ENS client as a complete replacement f
 
 This function takes two parameters:
 
-- `lookupAddress`: The address to resolve the name for, in **encoded** form.
+- `lookupAddress`: The address to resolve the name for, in **decoded** form (as per ENSIP-9).
+  - Example: with an Ethereum address of `0x314159265dD8dbb310642f98f50C066173C1259b`, this value would be `314159265dd8dbb310642f98f50c066173c1259b`.
+  - Example: with a Bitcoin address of `1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa`, this value would be `0062e907b15cbf27d5425399ebf6f0fb50ebb88f18`.
 - `coinType`: The coin type to resolve the name for, as defined by ENSIP-9 and ENSIP-11.
 
 The output of this function is:
