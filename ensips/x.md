@@ -31,8 +31,34 @@ A compliant implementation of the UniversalResolver must implement the following
 
 ```solidity
 interface IUniversalResolver {
-  function resolve(bytes calldata name, bytes calldata data) external view returns (bytes memory result, address resolver);
-  function reverse(bytes calldata lookupAddress, uint256 coinType) external view returns (string memory name, address resolver, address reverseResolver);
+    error ResolverNotFound(bytes name);
+
+    error ResolverNotContract(bytes name, address resolver);
+
+    error UnsupportedResolverProfile(bytes4 selector);
+
+    error ResolverError(bytes errorData);
+
+    error ReverseAddressMismatch(string primary, bytes primaryAddress);
+
+    error HttpError(uint16 status, string message);
+
+    function resolve(
+        bytes calldata name,
+        bytes calldata data
+    ) external view returns (bytes memory result, address resolver);
+
+    function reverse(
+        bytes calldata lookupAddress,
+        uint256 coinType
+    )
+        external
+        view
+        returns (
+            string memory primary,
+            address resolver,
+            address reverseResolver
+        );
 }
 ```
 
@@ -116,6 +142,46 @@ The output of this function is:
 - `name`: The verified reverse resolved name.
 - `resolver`: The address of the resolver that resolved the `addr` record for the name (i.e. forward verification).
 - `reverseResolver`: The address of the resolver that resolved the `name` record.
+
+In the scenario that a name is not set for the given parameters, all outputs will resolve to `0x`.
+
+### Errors
+
+- **ResolverNotFound**
+  - A resolver could not be found for the given name.
+  - Parameters
+    - `bytes name`: The name a resolver could not be found for.
+  - Can throw from **all** functions.
+- **ResolverNotContract**
+  - The resolver found for the given name is not a contract.
+  - Parameters
+    - `bytes name`: The name the resolver was found for.
+    - `address resolver`: The address of the resolver that is not a contract.
+  - Can throw from **all** functions.
+- **UnsupportedResolverProfile**
+  - The resolver for the given name did not respond, i.e. responded with `0x`.
+  - Parameters
+    - `bytes4 selector`: The function selector that the resolver did not respond to.
+  - Can throw from **all** functions.
+  - Can be propagated up from an internal resolver error.
+- **HttpError**
+  - An HTTP error occurred on a resolving gateway, either from a gateway used by the UniversalResolver itself, or by the resolver for the given name.
+  - Parameters
+    - `uint16 status`: The HTTP error status, e.g. 400, 404
+    - `string message`: The HTTP error message, e.g. "Resource not found"
+  - Can throw from **all** functions.
+  - Can be propagated up from an internal resolver error.
+- **ReverseAddressMismatch**
+  - The resolved address from reverse resolution does not match the resolved address for the primary name.
+  - Parameters
+    - `string primary`: The resolved primary name from reverse resolution.
+    - `bytes primaryAddress`: The resolved address for the primary name, from reverse resolution. In decoded form (as per ENSIP-9).
+  - Can throw from the **reverse** function.
+- **ResolverError**
+  - The resolver for the given name threw an unrecognised error. Used to distinguish between a resolution error and an internal resolver error.
+  - Parameters
+    - `bytes errorData`: The error data thrown from the resolver.
+  - Can throw from **all** functions.
 
 ## Backwards Compatibility
 
