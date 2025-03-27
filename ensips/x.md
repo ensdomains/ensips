@@ -25,17 +25,24 @@ This proposal standardizes an existing ENS solution, colloquially called the "Ba
 The BGOLP has the following Solidity interface:
 
 ```solidity
-/// @dev Interface selector: `0x01800152`
+/// @dev Interface selector: `0xa780bab6`
 interface IBatchGateway {
+    /// @notice An HTTP error occurred.
+    /// @dev Error selector: `0x01800152`
     error HttpError(uint16 status, string message);
 
+    /// @dev Information extracted from an `OffchainLookup` revert.
     struct Request {
-        address sender;
-        string[] urls;
-        bytes data;
+        address sender; // same as `OffchainLookup.sender`
+        string[] urls;  // same as `OffchainLookup.urls`
+        bytes data;     // same as `OffchainLookup.callData`
     }
 
-    /// @dev Error selector: `0xa780bab6`
+    /// @notice Perform multiple `OffchainLookup` in parallel.
+    /// @notice Callers should enable EIP-3668.
+    /// @param requests The array of requests to lookup in parallel.
+    /// @return failures The failure status of the corresponding request.
+    /// @return responses The response or error data of the corresponding request.
     function query(
         Request[] memory requests
     ) external view returns (bool[] memory failures, bytes[] memory responses);
