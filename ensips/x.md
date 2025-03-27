@@ -54,10 +54,10 @@ interface IBatchGateway {
 ### Batch Gateway Response
 
 - The length of `failures` and `responses` must equal the number of `requests`.
-- `failures[i]` is `false` if the request received a response from the server, according to EIP-3668, even if the response was error data.
+- `failures[i]` is `false` if a response was received according to EIP-3668, even if it was error data.
 - `failures[i]` is `true` if the request could not be completed.
     - If a HTTP error is encountered, encode the response using `HttpError`.
-    - If any other problem occurs, encode the response using `Error(string)`.
+    - Otherwise, encode the reason using `Error(string)`.
 - `responses[i]` is the response or error data.
 
 ## Rationale
@@ -73,6 +73,8 @@ The `UniversalResolver` is the only known contract that uses the BGOLP. Its desi
 ## Security Considerations
 
 A local BGOLP gateway is **always preferable** as an external gateway leaks information and adds latency.
+
+BGOLP gateways **should curtail the maximum number of simultaneous requests** in aggregate and per host to avoid DDOS attacks.
 
 BGOLP gateways **should not be trusted**. Each individual `OffchainLookup` must secure its own protocol.
 
