@@ -93,4 +93,4 @@ Copyright and related rights waived via [CC0](https://creativecommons.org/public
 
 ## Annex: Fault Tolerance
 
-To perform an `OffchainLookup` that never terminates, a single lookup with `n` gateways can be transformed into a BGOLP lookup with `n` requests, each with a single gateway. In exchange for fault tolerance, the response time will match the slowest gateway and successful responses will be replicated.
+To perform an `OffchainLookup` that does not terminate unexpectedly, a single lookup with `n` gateways can be transformed into a BGOLP lookup with `n` requests, each with a single gateway. In exchange for fault tolerance, the response time will match the slowest gateway and successful responses will be replicated.
