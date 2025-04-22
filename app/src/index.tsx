@@ -4,6 +4,7 @@ import postcss from 'postcss';
 import { renderToStaticMarkup } from 'react-dom/server';
 import rehypeStringify from 'rehype-stringify';
 import remarkFrontMatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
@@ -53,6 +54,7 @@ for (const file of files) {
 
         const result = await unified()
             .use(remarkParse)
+            .use(remarkGfm)
             .use(remarkRehype)
             .use(rehypeShiki, { theme: 'github-light' })
             .use(rehypeStringify)

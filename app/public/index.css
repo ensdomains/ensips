@@ -127,4 +127,19 @@ h1 {
     ol {
         @apply list-decimal;
     }
+    blockquote {
+        @apply border-l-2 border-ens-grey2 pl-4 py-1 my-1;
+    }
+    table {
+        @apply w-full table-auto border border-ens-grey2;
+
+        th,
+        td {
+            @apply p-2 border-b border-ens-grey2;
+
+            &:not(:last-child) {
+                @apply border-r border-ens-grey2;
+            }
+        }
+    }
 }
