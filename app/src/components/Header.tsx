@@ -15,7 +15,9 @@ export const Header: FC<{ frontmatter: Frontmatter }> = ({ frontmatter }) => {
             </div>
             <div>
                 <b>Created</b>
-                <div>{frontmatter.ensip.created}</div>
+                <div>
+                    {new Date(frontmatter.ensip.created).toLocaleDateString()}
+                </div>
             </div>
             <div>
                 <b>
