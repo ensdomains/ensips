@@ -11,20 +11,27 @@ export const Header: FC<{ frontmatter: Frontmatter }> = ({ frontmatter }) => {
             </div>
             <div>
                 <b>Status</b>
-                <div>{frontmatter.ensip.status}</div>
+                <div>{frontmatter.status}</div>
             </div>
             <div>
                 <b>Created</b>
-                <div>{frontmatter.ensip.created}</div>
+                <div>
+                    {frontmatter.created.toLocaleDateString('UTC', {
+                        timeZone: 'UTC',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                    })}
+                </div>
             </div>
             <div>
                 <b>
                     Author
-                    {frontmatter.contributors.length > 1 ? 's' : ''}
+                    {frontmatter.authors.length > 1 ? 's' : ''}
                 </b>
                 <ul>
-                    {frontmatter.contributors.map((contributor, index) => {
-                        return <li key={index}>{contributor}</li>;
+                    {frontmatter.authors.map((author, index) => {
+                        return <li key={index}>{author}</li>;
                     })}
                 </ul>
             </div>
