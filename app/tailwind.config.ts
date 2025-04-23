@@ -1,30 +1,8 @@
 import type { Config } from 'tailwindcss';
-// import plugin from 'tailwindcss/plugin';
-// import animatePlugin from 'tailwindcss-animate';
 
 const config: Config = {
     content: ['./src/**/*.{js,ts,jsx,tsx,mdx}', './public/**/*.css'],
     darkMode: 'class',
-    plugins: [
-        // animatePlugin,
-        // plugin(({ addVariant, matchVariant, theme }) => {
-        //     // Tailwind variant to allow for `interest-within` class that applies when the #search_open checkbox is checked
-        //     addVariant('interest-within', [
-        //         '#search_open[checked=true] ~ &',
-        //         '#search_open[checked=true] ~ * > &',
-        //         '#search_open[checked=true] ~ * * > &',
-        //         ':merge(.group):focus-within &',
-        //     ]);
-        //     // Tailwind variant for not disabled
-        //     addVariant('not-disabled', ['&:not([disabled])']);
-        //     matchVariant('vh', (value) => `@media (min-height: ${value})`, {
-        //         values: theme('screens'),
-        //     });
-        //     matchVariant('max-vh', (value) => `@media (max-height: ${value})`, {
-        //         values: theme('screens'),
-        //     });
-        // }),
-    ],
     theme: {
         fontFamily: {
             sans: ['Satoshi', 'sans-serif'],

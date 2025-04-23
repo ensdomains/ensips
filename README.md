@@ -27,7 +27,7 @@ This repository pertains to standards around the ENS protocol, for DAO governanc
 - May have one `Security Considerations`, with body
 - Must have one `Copyright`, with body matching the template.md
 - Must have `description` in frontmatter
-- Must have `contributors` in frontmatter (nick.eth)
+- Must have `contributors` in frontmatter (ENS name or GitHub username)
 - Must have `ensip` in frontmatter
   - Must have `created` under `ensip` (YYYY-MM-DD)
   - Must have `status` under `ensip` (draft, obsolete, final)

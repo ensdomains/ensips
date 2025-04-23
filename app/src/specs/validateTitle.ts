@@ -1,77 +1,39 @@
-/* eslint-disable unicorn/consistent-function-scoping */
-import type { Node, Parent } from 'unist';
-import { z } from 'zod';
+import type { Literal, Parent } from 'unist';
 
 import { TracedError } from '../util/error';
-import { LinePositionZod } from '../util/zod';
 
 // ENSIP-123: Title must match regex
 // or
 // ENSIP-X: Title must match regex
 const titleRegex = /ENSIP-(\d+|[Xx]):\s(.+)/;
 
-export const TitleZod = z.object({
-    type: z.literal('heading', {
-        description: 'First element must be a title',
-    }),
-    depth: z.literal(1, { description: 'Title must only use one hashtag' }),
-    children: z.array(
-        z.object(
-            {
-                type: z.literal('text'),
-                value: z.string().min(5).max(160),
-                position: LinePositionZod,
-            },
-            { description: 'Not text-based title' }
-        )
-    ),
-    position: LinePositionZod,
-});
-
-export type TitleNode = z.infer<typeof TitleZod>;
-
-export const extractTitle = (directPath: string, _tree: Node) => {
-    const tree = _tree as any as Parent;
-
-    // Count the number of h1 headings
-    const titleCount = tree.children.filter(
+export const extractTitle = (directPath: string, tree: Parent) => {
+    const titleNodes = tree.children.filter(
         // @ts-ignore
-        (node) => node.type === 'heading' && node.depth === 1
-    ) as TitleNode[];
+        (node) => node.tagName === 'h1'
+    ) as Parent[];
 
-    if (titleCount.length > 1)
+    if (titleNodes.length > 1)
         throw new TracedError(
             'More then one h1 (#) heading found, please use h2 (##) or h3 (###) headings',
             directPath,
-            titleCount[1]!.position.start.line,
-            titleCount[1]!.position.start.column,
-            titleCount[1]!.position.end.column
+            titleNodes[1]!.position!.start.line,
+            titleNodes[1]!.position!.start.column,
+            titleNodes[1]!.position!.end.column
         );
 
-    const first = (
-        (tree as any)['children'] as [
-            {
-                type: 'heading';
-                depth: number;
-                children: [{ type: 'text'; value: string }];
-            }
-        ]
-    ).shift();
-
-    const titleNode = TitleZod.parse(first);
-
-    const title = titleNode.children
-        .reduce((accumulator, current) => accumulator + ' ' + current.value, '')
-        .trim();
+    const first = titleNodes.shift();
+    const firstChildren = first?.children as Literal[];
+    const title = firstChildren?.[0]?.value as string;
 
     // title must match regex
     if (!titleRegex.test(title)) {
         throw new TracedError(
             'Invalid title format, please format title as "ENSIP-X: Title" (PR\'s) or "ENSIP-123: Title" (after merge)',
             directPath,
-            titleNode.position.start.line,
-            titleNode.position.start.column,
-            titleNode.position.end.column
+            first!.position!.start.line,
+            first!.position!.start.column,
+            first!.position!.end.column
         );
     }
 

@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable unicorn/consistent-function-scoping */
-import type { Node, Parent } from 'unist';
+import type { Parent } from 'unist';
 
 import { TracedError } from '../util/error';
 
@@ -34,15 +34,7 @@ const HEADINGS = [
 ];
 
 export const validateHeadings = (
-    headings: {
-        type: 'heading';
-        depth: number;
-        children: [{ type: 'text'; value: string }];
-        position: {
-            start: { line: number; column: number };
-            end: { line: number; column: number };
-        };
-    }[],
+    headings: NewParent[],
     ignoredRules: string[],
     directPath: string
 ) => {
@@ -50,7 +42,8 @@ export const validateHeadings = (
 
     // Validate headings
     for (const heading of headings) {
-        const [{ value }] = heading.children;
+        const value = heading.children[0]?.value!;
+
         let found = false;
 
         const newHeadings = [...requiredHeadings];
@@ -93,9 +86,9 @@ export const validateHeadings = (
                 throw new TracedError(
                     `Unexpected heading \`${value}\`, expecting \`${requiredHeading.title.source}\``,
                     directPath,
-                    heading.position.start.line,
-                    heading.position.start.column,
-                    heading.position.end.column
+                    heading.position!.start.line,
+                    heading.position!.start.column,
+                    heading.position!.end.column
                 );
             }
         }
@@ -106,9 +99,9 @@ export const validateHeadings = (
             throw new TracedError(
                 `Unexpected heading \`${value}\``,
                 directPath,
-                heading.position.start.line,
-                heading.position.start.column,
-                heading.position.end.column
+                heading.position!.start.line,
+                heading.position!.start.column,
+                heading.position!.end.column
             );
         }
 
@@ -131,25 +124,20 @@ export const validateHeadings = (
     }
 };
 
+type NewParent = {
+    tagName: string;
+    children: (NewParent & {
+        value: string;
+    })[];
+} & Omit<Parent, 'data'>;
+
 export const validateContent = (
     directPath: string,
-    _tree: Node,
+    _tree: Parent,
     ignoredRules: string[]
 ) => {
-    const tree = _tree as any as Parent;
-
-    const headings = tree.children.filter(
-        // @ts-ignore
-        (node) => node.type === 'heading' && node.depth === 2
-    ) as {
-        type: 'heading';
-        depth: number;
-        children: [{ type: 'text'; value: string }];
-        position: {
-            start: { line: number; column: number };
-            end: { line: number; column: number };
-        };
-    }[];
+    const tree = _tree as NewParent;
+    const headings = tree.children.filter((node) => node.tagName === 'h2');
 
     validateHeadings(headings, ignoredRules || [], directPath);
 
