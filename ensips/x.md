@@ -21,7 +21,7 @@ This standard establishes [custom errors](https://docs.soliditylang.org/en/lates
 
 ENS and the broader Ethereum ecosystem are becoming increasingly multichain.  [ERC-3668](https://eips.ethereum.org/EIPS/eip-3668) enables offchain access and ENSIP-10 allows a complete namespace to be bridged from another chain.
 
-Currently, it is difficult to programmatically disambiguate between resolution responses that have different end-user consequences.  Clients are forced interpret `null` and resolution reverts as *this record does not exist*.  There is no reliable technique to check if a name exists.
+Currently, it is difficult to programmatically disambiguate between resolution responses that have different end-user consequences.  Clients are forced to interpret `null` and resolution reverts as *this record does not exist*.  There is no reliable technique to check if a name exists.
 
 ## Specification
 
