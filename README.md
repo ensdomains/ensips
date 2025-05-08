@@ -30,7 +30,7 @@ This repository pertains to standards around the ENS protocol, for DAO governanc
 - Must have `contributors` in frontmatter (ENS name or GitHub username)
 - Must have `ensip` in frontmatter
   - Must have `created` under `ensip` (YYYY-MM-DD)
-  - Must have `status` under `ensip` (draft, obsolete, final)
+  - Must have `status` under `ensip` (draft, obsolete, final, living)
 - New ENSIPs must not have `ignoredRules`in frontmatter
 
 #### General Formatting

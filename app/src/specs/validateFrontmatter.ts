@@ -14,7 +14,7 @@ export const FrontMatterZod = z.object({
         .min(1)
         .max(10),
     ensip: z.object({
-        status: z.enum(['draft', 'obsolete', 'final']),
+        status: z.enum(['draft', 'obsolete', 'final', 'living']),
         created: z.coerce.date(),
     }),
     ignoredRules: z.array(z.string()).optional(),
