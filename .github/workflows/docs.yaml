@@ -1,0 +1,19 @@
+name: Trigger Docs Rebuild
+
+on:
+  push:
+    branches:
+      - rebuild-docs
+
+jobs:
+  rebuild_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Cloudflare Deploy Hook ID
+        id: setup
+        run: echo "CLOUDFLARE_DEPLOY_HOOK_ID=${{ secrets.CLOUDFLARE_DEPLOY_HOOK_ID }}" >> $GITHUB_ENV
+
+      - name: POST to Cloudflare Deploy Hook
+        if: env.CLOUDFLARE_DEPLOY_HOOK_ID != ''
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/${{ env.CLOUDFLARE_DEPLOY_HOOK_ID }}"
