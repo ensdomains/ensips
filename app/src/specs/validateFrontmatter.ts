@@ -1,6 +1,7 @@
+import { ens_normalize } from '@adraffy/ens-normalize';
 import { z } from 'zod';
 
-import { ENSNameRegex, GithubUsernameRegex } from '../util/regex';
+import { GithubUsernameRegex } from '../util/regex';
 
 export const FrontMatterZod = z.object({
     description: z.string().min(5).max(160),
@@ -8,7 +9,15 @@ export const FrontMatterZod = z.object({
         .array(
             z
                 .string()
-                .regex(ENSNameRegex)
+                // If the value has a dot, check that it's a normalized ENS name
+                .refine(
+                    (value) =>
+                        value.includes('.') && ens_normalize(value) === value,
+                    {
+                        message: 'ENS name is not normalized',
+                    }
+                )
+                // Otherwise treat it as a GitHub username
                 .or(z.string().regex(GithubUsernameRegex))
         )
         .min(1)
