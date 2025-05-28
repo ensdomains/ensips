@@ -87,15 +87,15 @@ Example of a multicall:
 ```typescript
 function getData(name: string) {
   const encodedMulticallData = encodeFunctionData({
-    name: "multicall",
+    functionName: "multicall",
     args: [
       [
         encodeFunctionData({
-          name: "addr",
+          functionName: "addr",
           args: [namehash(name)],
         }),
         encodeFunctionData({
-          name: "text",
+          functionName: "text",
           args: [namehash(name), "url"],
         }),
       ],
@@ -104,7 +104,7 @@ function getData(name: string) {
   const [encodedMulticallResult, resolverAddress] =
     await universalResolver.resolve(dnsEncodeName(name), encodedMulticallData);
   const decodedMulticallResults = decodeFunctionResult({
-    name: "multicall",
+    functionName: "multicall",
     data: encodedMulticallResult,
   });
 
