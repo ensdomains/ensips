@@ -8,6 +8,7 @@
         "lint": "eslint -c .eslintrc.json --ext .ts,.tsx ./src"
     },
     "dependencies": {
+        "@adraffy/ens-normalize": "^1.11.0",
         "@shikijs/rehype": "^3.3.0",
         "cssnano": "^7.0.5",
         "gray-matter": "^4.0.3",
