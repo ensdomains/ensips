@@ -19,23 +19,39 @@ ENS is a globally recognized, tokenized naming system whose ownership is verifia
 ### Text Record Key
 
 * **Key**: `llms-txt`
-* **Value**: Text in UTF-8 format conforming to the llms.txt standard with ENS-specific adaptations for interface definitions.
-* **Expected Format**: Markdown following llms.txt specification with suggested interface format for multiple interaction modes.
+* **Value**: Text in UTF-8 format conforming to the llms.txt standard.
+* **Expected Format**: Markdown following llms.txt specification.
 
-The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5. Implementers MAY embed multiple interfaces in a single manifest using the suggested format below.
+The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5.
 
-### ENS-Adapted llms.txt Format
+### llms.txt Format
 
-The manifest follows the llms.txt standard structure with ENS-specific adaptations:
+The manifest follows the standard llms.txt structure:
 
 1. **H1 Title**: A level-1 heading naming the project or site (this title is the only required element)
 2. **Brief Summary**: Blockquote describing what the ENS name represents
-3. **Details**: Interface definitions using `--- Interface Name ---` format (no H2 headers allowed in this section)
+3. **Details**: Additional paragraphs or lists providing important notes or guidance (no H2 headers allowed in this section)
 4. **Optional H2 Sections**: Zero or more markdown sections with file lists of URLs for additional context
 
-#### Suggested Interface Format
+### Example
 
-Interfaces should be defined using the `--- Interface Name ---` delimiter:
+A simple example using Ethers.js:
+
+```js
+const resolver = await provider.getResolver("example.eth");
+const llmsTxt = await resolver.getText("llms-txt");
+console.log(llmsTxt);
+```
+
+This command returns the llms.txt-compliant manifest that defines the ENS name's context.
+
+## Agententic System Interfaces
+
+This section defines an optional extension to the llms.txt standard specifically for ENS names that want to define multiple AI interaction interfaces.
+
+### Interface Format
+
+ENS implementers MAY embed multiple interfaces in their llms.txt manifest using the `--- Interface Name ---` delimiter format in the Details section:
 
 ```markdown
 # example.eth
@@ -83,38 +99,26 @@ For support inquiries, contact support@example.com or visit our Discord at disco
 - [Status Page](https://status.example.com/): Service availability and updates
 ```
 
-### Semantic Role *(informative)*
+### Interface Types
 
-The `llms-txt` text record serves as the "home page" for an ENS name when viewed by agent based systems:
+This extension defines several interface types that ENS names can implement:
 
 * **Chat interface.** Defines personality, knowledge sources, and conversation guidelines for chat applications.
 * **Agent interface.** Specifies tools, capabilities, and integration methods for MCP middleware and autonomous agents.
 * **Tools interface.** Documents available functions, their parameters, and usage examples.
 * **Contact interface.** Provides fallback communication methods and support channels.
 
-### Client Resolution Flow *(informative)*
+### Client Resolution Flow for Interfaces
 
 1. Resolve `llms-txt` for the target ENS name.
-2. Parse the manifest to identify available interfaces.
+2. Parse the manifest to identify available interfaces using the `--- Interface Name ---` delimiters.
 3. Select an interface that matches the client's capabilities.
-4. Initialize the LLM context with the interface-specific instructions.
+4. Initialize the context with the interface-specific instructions.
 5. Optionally fetch additional resources from the H2 sections for enhanced context.
 
 ### Backwards Compatibility
 
 Unaware clients will simply ignore the new key; existing behavior is unaffected.
-
-### Example
-
-A simple example using Ethers.js:
-
-```js
-const resolver = await provider.getResolver("example.eth");
-const llmsTxt = await resolver.getText("llms-txt");
-console.log(llmsTxt);
-```
-
-This command returns the llms.txt-compliant manifest that defines the ENS name's AI interfaces and context.
 
 ### Security Considerations
 
