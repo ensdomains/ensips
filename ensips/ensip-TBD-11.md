@@ -122,7 +122,7 @@ Unaware clients will simply ignore the new key; existing behavior is unaffected.
 
 ### Security Considerations
 
-There are no security considerations specific to this ENSIP. Standard considerations for text records apply, including the verification of ENS name ownership and the trustworthiness of referenced external resources.
+There are no security considerations specific to this ENSIP.
 
 ## Rationale
 
