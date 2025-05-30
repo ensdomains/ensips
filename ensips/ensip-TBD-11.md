@@ -31,7 +31,7 @@ The manifest follows the standard llms.txt structure:
 1. **H1 Title**: A level-1 heading naming the project or site (this title is the only required element)
 2. **Brief Summary**: Blockquote describing what the ENS name represents
 3. **Details**: Additional paragraphs or lists providing important notes or guidance (no H2 headers allowed in this section)
-4. **Optional H2 Sections**: Zero or more markdown sections with file lists of URLs for additional context
+4. **File Lists of URLs**: Markdown sub-headers for additional context, each containing a list of URLs
 
 ### Example
 
