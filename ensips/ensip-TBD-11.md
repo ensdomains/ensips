@@ -16,6 +16,8 @@ ENS is a globally recognized, tokenized naming system whose ownership is verifia
 
 ## Specification
 
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
+
 ### Text Record Key
 
 * **Key**: `llms-txt`
@@ -116,6 +118,12 @@ This extension defines several interface types that ENS names can implement:
 4. Initialize the context with the interface-specific instructions.
 5. Optionally fetch additional resources from the H2 sections for enhanced context.
 
+## Rationale
+
+This ENSIP adopts the proven llms.txt standard to provide a familiar, standardized format for AI systems. By leveraging an existing specification that's already adopted by thousands of sites, we ensure compatibility with existing tools and reduce the learning curve for developers. The interface-based approach allows a single ENS name to serve multiple AI use cases while maintaining clean separation of concerns.
+
+The choice to use `llms-txt` as the key name creates a clear connection to the broader llms.txt ecosystem while the ENS-specific adaptations (interface definitions) extend the standard in a backwards-compatible way.
+
 ### Backwards Compatibility
 
 Unaware clients will simply ignore the new key; existing behavior is unaffected.
@@ -124,12 +132,6 @@ Unaware clients will simply ignore the new key; existing behavior is unaffected.
 
 There are no security considerations specific to this ENSIP.
 
-## Rationale
-
-This ENSIP adopts the proven llms.txt standard to provide a familiar, standardized format for AI systems. By leveraging an existing specification that's already adopted by thousands of sites, we ensure compatibility with existing tools and reduce the learning curve for developers. The interface-based approach allows a single ENS name to serve multiple AI use cases while maintaining clean separation of concerns.
-
-The choice to use `llms-txt` as the key name creates a clear connection to the broader llms.txt ecosystem while the ENS-specific adaptations (interface definitions) extend the standard in a backwards-compatible way.
-
 ## Copyright
 
-CC0‑1.0
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
