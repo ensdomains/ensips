@@ -1,5 +1,5 @@
 ---
-title: LLMs.txt Text Record  
+title: Llms-txt Text Record  
 author: Prem Makeig (premm.eth) <premm@unruggable.com>  
 discussions-to: <URL>
 status: Idea  
