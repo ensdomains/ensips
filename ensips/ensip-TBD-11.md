@@ -1,41 +1,55 @@
 ---
-title: Llms-txt Text Record  
-author: Prem Makeig (premm.eth) <premm@unruggable.com>  
+title: Llms-agent and llms-txt Text Record
+author: Prem Makeig (premm.eth) <premm@unruggable.com>
 discussions-to: <URL>
-status: Idea  
-created: 2025-05-17  
+status: Idea
+created: 2025-05-17
 ---
 
 ## Abstract
 
-This ENSIP extends **ENSIP‑5: Text Records** by standardizing a single global text record key, **`llms-txt`**. The key conforms to the llms.txt standard introduced by Jeremy Howard in September 2024, acting as an AI-friendly manifest for an ENS name. It tells agent based systems *what* the name represents (data source, chatbot, autonomous agent, etc.) and *how* to interact with it. By storing this llms.txt-compliant manifest onchain via ENS, any app (chat front‑ends, wallet UIs, MCP middleware, crawlers) has one reliable, verifiable place to discover AI-relevant context and interaction methods.
+This ENSIP extends **ENSIP‑5: Text Records** by standardizing two new text records, **`llms-agent`** and **`llms-txt`**. The `llms-agent` text record key is designed as a universal, structured entry point for agentic systems. `llms-txt` conforms to the llms.txt standard introduced by Jeremy Howard in September 2024, acting as an AI-friendly manifest for an ENS name. `llms-txt` is designed to complement the ENS `contenthash` text record by providing LLM-friendly context, in the same way the llms.txt standard complements traditional websites.
+
+The `llms-agent` ENS text record key is designed to be a standalone entry point for agentic systems. It tells agent-based systems *what* the name represents (data source, chatbot, autonomous agent, etc.) and *how* to interact with it. By storing context data onchain via ENS, any app (chat front ends, wallet UIs, MCP middleware, crawlers) has a reliable, verifiable place to discover AI-relevant context and interaction methods.
 
 ## Motivation
 
-ENS is a globally recognized, tokenized naming system whose ownership is verifiable on-chain. This makes it a natural anchor for agents and AI-focused datasets. The llms.txt standard provides a proven format for making web content LLM-friendly, and adapting it to ENS text records creates a standardized way for AI systems to discover and interact with ENS names. A single `llms-txt` text record lets any client load the initial instructions it needs before deciding how to behave, while conforming to an emerging web standard that's already adopted by thousands of documentation sites and developer tools.
+ENS is a globally recognized, tokenized naming system whose ownership is verifiable onchain. This makes it a natural anchor for agents and AI-focused datasets. The llms.txt standard provides a proven format for making web content LLM-friendly, and adapting it to ENS text records creates a standardized way for AI systems to discover and interact with ENS names.
+
+Agentic systems that require verifiable context data are emerging; however, it is not yet clear what the dominant applications will be. The pair of ENS text record keys introduced in this ENSIP, `llms-agent` and `llms-txt`, provide both an open-ended entry point for agentic systems and implement an emerging standard for existing web applications that's already adopted by thousands of documentation sites and developer tools.
 
 ## Specification
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
-### Text Record Key
+### Text Record Keys
 
-* **Key**: `llms-txt`
-* **Value**: Text in UTF-8 format conforming to the llms.txt standard.
-* **Expected Format**: Markdown following llms.txt specification.
+#### `llms-agent`
+
+* **Key**: `llms-agent`
+* **Value**: Text in UTF-8 format.
+* **Expected Format**: None
 
 The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5.
 
-### llms.txt Format
+#### `llms-txt`
+
+* **Key**: `llms-txt`
+* **Value**: Text in UTF-8 format conforming to the llms.txt standard.
+* **Expected Format**: Markdown following the llms.txt specification.
+
+The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5.
+
+##### llms.txt Format
 
 The manifest follows the standard llms.txt structure:
 
-1. **H1 Title**: A level-1 heading naming the project or site (this title is the only required element)
-2. **Brief Summary**: Blockquote describing what the ENS name represents
-3. **Details**: Additional paragraphs or lists providing important notes or guidance (no H2 headers allowed in this section)
-4. **File Lists of URLs**: Markdown sub-headers for additional context, each containing a list of URLs
+1. **H1 Title**: A level-1 heading naming the project or site (this title is the only required element).
+2. **Brief Summary**: Blockquote describing what the ENS name represents.
+3. **Details**: Additional paragraphs or lists providing important notes or guidance (no H2 headers allowed in this section).
+4. **File Lists of URLs**: Markdown sub-headers for additional context, each containing a list of URLs.
 
-### Example
+##### Example
 
 A simple example using Ethers.js:
 
@@ -47,7 +61,7 @@ console.log(llmsTxt);
 
 This command returns the llms.txt-compliant manifest that defines the ENS name's context.
 
-## Agententic System Interfaces
+## Agentic System Interfaces
 
 This section defines an optional extension to the llms.txt standard specifically for ENS names that want to define multiple AI interaction interfaces.
 
@@ -105,10 +119,10 @@ For support inquiries, contact support@example.com or visit our Discord at disco
 
 This extension defines several interface types that ENS names can implement:
 
-* **Chat interface.** Defines personality, knowledge sources, and conversation guidelines for chat applications.
-* **Agent interface.** Specifies tools, capabilities, and integration methods for MCP middleware and autonomous agents.
-* **Tools interface.** Documents available functions, their parameters, and usage examples.
-* **Contact interface.** Provides fallback communication methods and support channels.
+* **Chat interface**: Defines personality, knowledge sources, and conversation guidelines for chat applications.
+* **Agent interface**: Specifies tools, capabilities, and integration methods for MCP middleware and autonomous agents.
+* **Tools interface**: Documents available functions, their parameters, and usage examples.
+* **Contact interface**: Provides fallback communication methods and support channels.
 
 ### Client Resolution Flow for Interfaces
 
@@ -120,9 +134,9 @@ This extension defines several interface types that ENS names can implement:
 
 ## Rationale
 
-This ENSIP adopts the proven llms.txt standard to provide a familiar, standardized format for AI systems. By leveraging an existing specification that's already adopted by thousands of sites, we ensure compatibility with existing tools and reduce the learning curve for developers. The interface-based approach allows a single ENS name to serve multiple AI use cases while maintaining clean separation of concerns.
+This ENSIP adopts the proven llms.txt standard to provide a familiar, standardized format for AI systems. By leveraging an existing specification that's already adopted by thousands of sites, we ensure compatibility with existing tools and reduce the learning curve for developers. The interface-based approach allows a single ENS name to serve multiple AI use cases while maintaining a clean separation of concerns.
 
-The choice to use `llms-txt` as the key name creates a clear connection to the broader llms.txt ecosystem while the ENS-specific adaptations (interface definitions) extend the standard in a backwards-compatible way.
+The choice to use `llms-txt` as the key name creates a clear connection to the broader llms.txt ecosystem, while the ENS-specific adaptations (interface definitions) extend the standard in a backwards-compatible way.
 
 ### Backwards Compatibility
 
