@@ -8,38 +8,93 @@ created: 2025-05-17
 
 ## Abstract
 
-This ENSIP extends **ENSIP‑5: Text Records** by standardizing a single global text record key, **`root-context`**. The key acts as the “home page” for an ENS name when viewed by large language model (LLM) systems: it points to a manifest that tells an AI client *what* the name represents (data source, chatbot, autonomous agent, etc.) and *how* to interact with it. By keeping that manifest onchain, ENS gives any app (chat front‑ends, wallet UIs, MCP middleware, crawlers) one reliable place to look it up.
+This ENSIP extends **ENSIP‑5: Text Records** by standardizing a single global text record key, **`root-context`**. The key provides a universal entry point to ENS names for agentic systems, defining a standard way to specify interfaces using the `root-context` text record. It describes *what* the name represents (data source, chatbot, autonomous agent, etc.) and *how* to interact with it. By storing context data onchain via ENS, any app (chat front ends, wallet UIs, MCP middleware, crawlers) has a reliable, verifiable place to discover AI context and interaction methods.
 
 ## Motivation
 
-ENS is a globally recognized, tokenized naming system whose ownership is verifiable on-chain. This makes it a natural anchor for agents and AI-focused datasets. A single `root-context` text record lets any client, whether a chat app, wallet, crawler or MCP middleware, load the initial instructions it needs before deciding how to behave. This newly introduced text record supplies the context an LLM requires, signals which interface to present (chat, agent or data), and keeps the pointer verifiable and reproducible because it is stored on-chain.
+Agentic systems that require verifiable context data are emerging, including agents that can propose blockchain transactions with calldata, or that rely on critical context data requiring verifiability. ENS names are well positioned to register verifiable context data because they can be stored onchain and are supported by existing tooling. This ENSIP introduces a standard way to discover interfaces (which may include implementations) for storing verifiable AI context using the `root-context` text record. Using this standard, agentic systems can be developed using any type of interface, while allowing apps to ignore interfaces they do not require.
 
 ## Specification
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
 ### Text Record Key
 
 * **Key**: `root-context`
-* **Value**: Text in UTF-8 format for a manifest that outlines one or more interfaces (for example, `chat`, `agent`, `data`) plus any supporting metadata.
-* **Expected Format**: Plain text, YAML, JSON, or other standard formats designed for LLM context.
+* **Value**: Text in UTF-8 format for a manifest that outlines one or more interfaces (for example, `chat`, `agent` or `tools`) plus any supporting metadata or implementation details.
+* **Expected Format**: Plain text, Markdown, YAML, JSON, or other standard formats designed for LLM context.
 
-The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5. Implementers MAY embed multiple interfaces in a single manifest; each interface can be described in natural language or structured metadata.
+The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5. Implementers MAY embed multiple interfaces in a single manifest. Each interface can be described in natural language or structured metadata. Implementers MAY include implementation details in the manifest, such as the address and interface of a smart contract or the URL of an API endpoint.
 
-### Semantic Role *(informative)*
+## Agentic System Interfaces
 
-Think of `root-context` as the landing page of a web application, except that it is optimized for AI, especially LLMs:
+This section defines an interface standard for the `root-context` text record of ENS names, allowing for the definition of multiple interfaces for agentic systems.
 
-* **Chat interface.** A manifest might instruct: “You are the official support bot for my blog. Greet users and answer FAQ from the dataset at `ipfs://…`.” Chat clients that recognize this cue can preload the context before opening a conversation.
-* **Agent interface.** The same manifest could include a second section: “When invoked as an *agent*, the ENS name can be loaded by MCP middleware, which exposes tools to the LLM. The tools themselves may be defined using dynamic text record keys or smart contract addresses and interfaces. Additional resources such as an API endpoint for an LLM or a memory service may be supplied to the MCP middleware to support the agent's behavior. This provides all the necessary components to "enliven" the ENS name as a fully functional AI agent.”
-* **Data-only mode.** In read-only scenarios, a manifest could simply declare: “This ENS name hosts the latest quarterly report PDFs.” These files could be stored as the contenthash record of the name, referenced using [ENSIP-TBD-9](https://github.com/nxt3d/ENSIP-ideas/blob/main/ENSIPS/ensip-TBD-9.md), or linked using `ipfs://`, `ar://`, or standard URLs. Indexers would treat it as a static data source.
+## Interface Format
 
-Each interface is *discoverable* through the manifest, so no additional ENS text records are required.
+Implementers MAY embed multiple interfaces in their `root-context` manifest using the `----- Interface Name -----` (five dashes on each side of the interface name) delimiter format. An interface name MUST NOT appear more than once.
 
-### Client Resolution Flow *(informative)*
+```
+----- Chat -----
+
+You are the official support bot for ExampleProject. Greet users warmly and answer questions about our API, pricing, and getting started. Use the documentation linked below for accurate information.
+. . . 
+
+----- Agent -----
+
+When invoked as an agent via MCP middleware, this ENS name provides tools for querying the ExampleProject API, managing user accounts, and generating reports. The agent has access to real-time data and can perform actions on behalf of authenticated users.
+. . . 
+
+----- Tools -----
+
+-- status --
+
+Queries the ExampleProject API with the given parameters and returns structured data.
+
+Parameters: none
+
+-- generate-report --
+
+Generates a usage report for a given time period.
+
+Parameters:
+- start: Start time as Unix timestamp
+- end: End time as Unix timestamp
+```
+
+## Interface Types
+
+This extension defines several interface types that ENS names MAY implement:
+
+* **Chat** – Defines personality, knowledge sources, and conversation guidelines for AI chat applications or other user-facing AI applications.
+* **Agent** – Specifies tools, capabilities, and integration methods for autonomous or semi-autonomous agents.
+* **Tools** – Documents available functions, their parameters, and usage examples.
+* **Resources** – Resources used for agentic systems.
+* **Prompts** – Prompts that can be used within AI workflows or chat applications.
+
+## Client Resolution Flow for Interfaces
 
 1. Resolve `root-context` for the target ENS name.
-2. Retrieve the manifest.
-3. Parse the manifest to select an interface that matches the client’s capabilities (for example, chat or agent).
-4. Proceed according to the manifest’s instructions: initializing an LLM, loading tools, displaying UI hints, or fetching datasets.
+2. Parse the manifest to identify available interfaces using the `----- Interface Name -----` delimiters.
+3. Select one or more interfaces that match the client's capabilities.
+4. Compose a context from the selected interfaces.
+
+## Links
+
+Decentralized storage protocols use content identifiers (CIDs) instead of URLs, such that the link is also a hash of the content. Interfaces MAY include embedded links and content in the form of CIDs, DataURLs, or other types of links. DataURLs MUST be included in the context received by the client. DataURLs allow for images to be encoded and included in a raw text document. Other types of links, such as IPFS CIDs, MAY be queried and included in the context received by clients. It is also possible to include URLs, which cannot be verified and SHOULD NOT be queried or included in the context. However, a URL MAY be included in the context as a reference (e.g., as a literal URL string).
+
+## Markdown
+
+Markdown provides useful formatting features that can be used within an interface specification. For example, it can be useful to embed JSON or code examples within an interface using a fenced code block:
+
+```json
+{
+  "name": "Swap Agent",
+  "date": "05-30-2025"
+}
+```
+
+Headers and text styling such as bold, italics, etc., can also be used.
 
 ### Backwards Compatibility
 
@@ -55,18 +110,21 @@ const rootContext = await resolver.getText("root-context");
 console.log(rootContext);
 ```
 
-This command returns the raw content that defines the ENS name’s machine-readable context.
+This command returns the raw content that defines the ENS name's machine-readable context.
 
 ### Security Considerations
 
 There are no security considerations specific to this ENSIP.
 
-## Rationale *(informative)*
+## Rationale
 
-The purpose of this ENSIP is to introduce a standardized way for clients to locate and interpret AI-relevant context for any ENS name. By associating a plain text pointer with the name itself, developers and applications can uniformly initialize context-aware behavior in a uniform way.
+This ENSIP creates a standardized context resource for ENS names and with a standardized interface format. The interface-based approach allows a single ENS name to support multiple AI use cases while maintaining a clean separation of concerns.
+
+By specifying a structured format for `root-context`, this ENSIP enables developers to create more predictable and interoperable agentic systems, reducing the need for ad hoc parsing or proprietary formats. It builds a foundation for ecosystem-wide conventions that can benefit wallet developers, front-end builders, middleware, and even cross-platform agent orchestration, allowing ENS names to act not just as identity anchors, but as context-rich agents.
+
 
 ## Copyright
 
-CC0‑1.0
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 
