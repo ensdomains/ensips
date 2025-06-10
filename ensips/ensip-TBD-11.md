@@ -86,13 +86,14 @@ Decentralized storage protocols use content identifiers (CIDs) instead of URLs, 
 ## Markdown
 
 Markdown provides useful formatting features that can be used within an interface specification. For example, it can be useful to embed JSON or code examples within an interface using a fenced code block:
-
+````
 ```json
 {
   "name": "Swap Agent",
   "date": "05-30-2025"
 }
 ```
+````
 
 Headers and text styling such as bold, italics, etc., can also be used.
 
