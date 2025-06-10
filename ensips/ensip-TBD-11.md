@@ -1,151 +1,72 @@
 ---
-title: Llms-agent and llms-txt Text Record
-author: Prem Makeig (premm.eth) <premm@unruggable.com>
+title: Root‑Context Text Record  
+author: Prem Makeig (premm.eth) <premm@unruggable.com>  
 discussions-to: <URL>
-status: Idea
-created: 2025-05-17
+status: Idea  
+created: 2025-05-17  
 ---
 
 ## Abstract
 
-This ENSIP extends **ENSIP‑5: Text Records** by standardizing two new text records, **`llms-agent`** and **`llms-txt`**. The `llms-agent` text record key is designed as a universal, structured entry point for agentic systems. `llms-txt` conforms to the llms.txt standard introduced by Jeremy Howard in September 2024, acting as an AI-friendly manifest for an ENS name. `llms-txt` is designed to complement the ENS `contenthash` text record by providing LLM-friendly context, in the same way the llms.txt standard complements traditional websites.
-
-The `llms-agent` ENS text record key is designed to be a standalone entry point for agentic systems. It tells agent-based systems *what* the name represents (data source, chatbot, autonomous agent, etc.) and *how* to interact with it. By storing context data onchain via ENS, any app (chat front ends, wallet UIs, MCP middleware, crawlers) has a reliable, verifiable place to discover AI-relevant context and interaction methods.
+This ENSIP extends **ENSIP‑5: Text Records** by standardizing a single global text record key, **`root-context`**. The key acts as the “home page” for an ENS name when viewed by large language model (LLM) systems: it points to a manifest that tells an AI client *what* the name represents (data source, chatbot, autonomous agent, etc.) and *how* to interact with it. By keeping that manifest onchain, ENS gives any app (chat front‑ends, wallet UIs, MCP middleware, crawlers) one reliable place to look it up.
 
 ## Motivation
 
-ENS is a globally recognized, tokenized naming system whose ownership is verifiable onchain. This makes it a natural anchor for agents and AI-focused datasets. The llms.txt standard provides a proven format for making web content LLM-friendly, and adapting it to ENS text records creates a standardized way for AI systems to discover and interact with ENS names.
-
-Agentic systems that require verifiable context data are emerging; however, it is not yet clear what the dominant applications will be. The pair of ENS text record keys introduced in this ENSIP, `llms-agent` and `llms-txt`, provide both an open-ended entry point for agentic systems and implement an emerging standard for existing web applications that's already adopted by thousands of documentation sites and developer tools.
+ENS is a globally recognized, tokenized naming system whose ownership is verifiable on-chain. This makes it a natural anchor for agents and AI-focused datasets. A single `root-context` text record lets any client, whether a chat app, wallet, crawler or MCP middleware, load the initial instructions it needs before deciding how to behave. This newly introduced text record supplies the context an LLM requires, signals which interface to present (chat, agent or data), and keeps the pointer verifiable and reproducible because it is stored on-chain.
 
 ## Specification
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
+### Text Record Key
 
-### Text Record Keys
+* **Key**: `root-context`
+* **Value**: Text in UTF-8 format for a manifest that outlines one or more interfaces (for example, `chat`, `agent`, `data`) plus any supporting metadata.
+* **Expected Format**: Plain text, YAML, JSON, or other standard formats designed for LLM context.
 
-#### `llms-agent`
+The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5. Implementers MAY embed multiple interfaces in a single manifest; each interface can be described in natural language or structured metadata.
 
-* **Key**: `llms-agent`
-* **Value**: Text in UTF-8 format.
-* **Expected Format**: None
+### Semantic Role *(informative)*
 
-The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5.
+Think of `root-context` as the landing page of a web application, except that it is optimized for AI, especially LLMs:
 
-#### `llms-txt`
+* **Chat interface.** A manifest might instruct: “You are the official support bot for my blog. Greet users and answer FAQ from the dataset at `ipfs://…`.” Chat clients that recognize this cue can preload the context before opening a conversation.
+* **Agent interface.** The same manifest could include a second section: “When invoked as an *agent*, the ENS name can be loaded by MCP middleware, which exposes tools to the LLM. The tools themselves may be defined using dynamic text record keys or smart contract addresses and interfaces. Additional resources such as an API endpoint for an LLM or a memory service may be supplied to the MCP middleware to support the agent's behavior. This provides all the necessary components to "enliven" the ENS name as a fully functional AI agent.”
+* **Data-only mode.** In read-only scenarios, a manifest could simply declare: “This ENS name hosts the latest quarterly report PDFs.” These files could be stored as the contenthash record of the name, referenced using [ENSIP-TBD-9](https://github.com/nxt3d/ENSIP-ideas/blob/main/ENSIPS/ensip-TBD-9.md), or linked using `ipfs://`, `ar://`, or standard URLs. Indexers would treat it as a static data source.
 
-* **Key**: `llms-txt`
-* **Value**: Text in UTF-8 format conforming to the llms.txt standard.
-* **Expected Format**: Markdown following the llms.txt specification.
+Each interface is *discoverable* through the manifest, so no additional ENS text records are required.
 
-The key **MUST** be published via `text(bytes32,string)` as defined in ENSIP‑5.
+### Client Resolution Flow *(informative)*
 
-##### llms.txt Format
-
-The manifest follows the standard llms.txt structure:
-
-1. **H1 Title**: A level-1 heading naming the project or site (this title is the only required element).
-2. **Brief Summary**: Blockquote describing what the ENS name represents.
-3. **Details**: Additional paragraphs or lists providing important notes or guidance (no H2 headers allowed in this section).
-4. **File Lists of URLs**: Markdown sub-headers for additional context, each containing a list of URLs.
-
-##### Example
-
-A simple example using Ethers.js:
-
-```js
-const resolver = await provider.getResolver("example.eth");
-const llmsTxt = await resolver.getText("llms-txt");
-console.log(llmsTxt);
-```
-
-This command returns the llms.txt-compliant manifest that defines the ENS name's context.
-
-## Agentic System Interfaces
-
-This section defines an optional extension to the llms.txt standard specifically for ENS names that want to define multiple AI interaction interfaces.
-
-### Interface Format
-
-ENS implementers MAY embed multiple interfaces in their llms.txt manifest using the `--- Interface Name ---` delimiter format in the Details section:
-
-```markdown
-# example.eth
-
-> Example.eth is an AI agent that provides customer support and documentation for the ExampleProject ecosystem.
-
---- Chat ---
-
-You are the official support bot for ExampleProject. Greet users warmly and answer questions about our API, pricing, and getting started. Use the documentation linked below for accurate information.
-
---- Agent ---
-
-When invoked as an agent via MCP middleware, this ENS name provides tools for querying the ExampleProject API, managing user accounts, and generating reports. The agent has access to real-time data and can perform actions on behalf of authenticated users.
-
---- Tools ---
-
--- status --
-
-Queries the ExampleProject API with the given parameters and returns structured data.
-
-Parameters: none
-
--- generate-report --
-
-Generates a usage report for a given time period.
-
-Parameters:
-- start: Start time as Unix timestamp
-- end: End time as Unix timestamp
-
---- Contact ---
-
-For support inquiries, contact support@example.com or visit our Discord at discord.gg/example.
-
-## Chat
-
-- [FAQ Database](https://docs.example.com/faq.md): Common questions and answers
-- [Knowledge Base](https://docs.example.com/kb.md): Detailed product information
-- [User Guide](https://docs.example.com/guide.md): Step-by-step tutorials
-
-## Contact
-
-- [Support Portal](https://support.example.com/): Submit tickets and track issues
-- [Community Forum](https://forum.example.com/): Connect with other users
-- [Status Page](https://status.example.com/): Service availability and updates
-```
-
-### Interface Types
-
-This extension defines several interface types that ENS names can implement:
-
-* **Chat interface**: Defines personality, knowledge sources, and conversation guidelines for chat applications.
-* **Agent interface**: Specifies tools, capabilities, and integration methods for MCP middleware and autonomous agents.
-* **Tools interface**: Documents available functions, their parameters, and usage examples.
-* **Contact interface**: Provides fallback communication methods and support channels.
-
-### Client Resolution Flow for Interfaces
-
-1. Resolve `llms-txt` for the target ENS name.
-2. Parse the manifest to identify available interfaces using the `--- Interface Name ---` delimiters.
-3. Select an interface that matches the client's capabilities.
-4. Initialize the context with the interface-specific instructions.
-5. Optionally fetch additional resources from the H2 sections for enhanced context.
-
-## Rationale
-
-This ENSIP adopts the proven llms.txt standard to provide a familiar, standardized format for AI systems. By leveraging an existing specification that's already adopted by thousands of sites, we ensure compatibility with existing tools and reduce the learning curve for developers. The interface-based approach allows a single ENS name to serve multiple AI use cases while maintaining a clean separation of concerns.
-
-The choice to use `llms-txt` as the key name creates a clear connection to the broader llms.txt ecosystem, while the ENS-specific adaptations (interface definitions) extend the standard in a backwards-compatible way.
+1. Resolve `root-context` for the target ENS name.
+2. Retrieve the manifest.
+3. Parse the manifest to select an interface that matches the client’s capabilities (for example, chat or agent).
+4. Proceed according to the manifest’s instructions: initializing an LLM, loading tools, displaying UI hints, or fetching datasets.
 
 ### Backwards Compatibility
 
 Unaware clients will simply ignore the new key; existing behavior is unaffected.
 
+### Example
+
+A simple example using Ethers.js:
+
+```js
+const resolver = await provider.getResolver("example.eth");
+const rootContext = await resolver.getText("root-context");
+console.log(rootContext);
+```
+
+This command returns the raw content that defines the ENS name’s machine-readable context.
+
 ### Security Considerations
 
 There are no security considerations specific to this ENSIP.
 
+## Rationale *(informative)*
+
+The purpose of this ENSIP is to introduce a standardized way for clients to locate and interpret AI-relevant context for any ENS name. By associating a plain text pointer with the name itself, developers and applications can uniformly initialize context-aware behavior in a uniform way.
+
 ## Copyright
 
-Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+CC0‑1.0
+
+
