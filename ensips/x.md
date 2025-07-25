@@ -79,6 +79,13 @@ The DService requirements listed in the spec above are provided to ensure that d
 
 Another possible consequence of dapps being able to use the DServices of other dapps is the emergence of a DService economy. Completely mitigating any vendor lock-in. DService implementations could access control their endpoints with CORS, so that only dapps on allow-lists would be permitted access. These allow-lists could be implemented on-chain using any arbitrary payment logic or otherwise.
 
+### Implementations
+
+Dservice functionality is currently implemented by [simplepage.eth](https://simplepage.eth.link):
+
+- [DService fetch](https://github.com/stigmergic-org/simplepage/blob/main/packages/common/src/dservice.js) - implement endpoint randomization and failover
+- [new.simplepage.eth](https://app.ens.domains/new.simplepage.eth?tab=records) - the domain where the DService endpoints are stored
+
 ## Backwards Compatibility
 
 Not applicable.
@@ -86,13 +93,6 @@ Not applicable.
 ## Security Considerations
 
 The possibility of providing DService URLs through query parameters opens up an attack vector where a bad actor could post links to your dapp including a url to a malicious dservice. This is the reason for adding the recommendation to display a warning message in a banner or modal when a URL is provided in this way.
-
-## Implementations
-
-Dservice functionality is currently implemented by [simplepage.eth](https://simplepage.eth.link):
-
-- [DService fetch](https://github.com/stigmergic-org/simplepage/blob/main/packages/common/src/dservice.js) - implement endpoint randomization and failover
-- [new.simplepage.eth](https://app.ens.domains/new.simplepage.eth?tab=records) - the domain where the DService endpoints are stored
 
 ## Copyright
 
