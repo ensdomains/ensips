@@ -83,7 +83,7 @@ Another possible consequence of dapps being able to use the DServices of other d
 
 Dservice functionality is currently implemented by [simplepage.eth](https://simplepage.eth.link):
 
-- [DService fetch](https://github.com/stigmergic-org/simplepage/blob/main/packages/common/src/dservice.js) - implement endpoint randomization and failover
+- [DService fetch](https://github.com/stigmergic-org/simplepage/blob/main/packages/common/src/dservice.js) - implements endpoint randomization and failover
 - [new.simplepage.eth](https://app.ens.domains/new.simplepage.eth?tab=records) - the domain where the DService endpoints are stored
 
 ## Backwards Compatibility
