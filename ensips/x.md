@@ -12,7 +12,7 @@ ensip:
 
 ## Abstract
 
-This ENSIP standardizes an universal entrypoint [UniversalResolver](#specification) (UR) for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10 § Pseudocode](./10#pseudocode) and [ENSIP-19 § Algorithm](./19#algorithm), and a [ENSIP-21](./21) client.
+This ENSIP standardizes an universal entrypoint [UniversalResolver](#specification) (UR) for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10 § Pseudocode](./10#pseudocode) and [ENSIP-19 § Algorithm](./19#algorithm), and a [ENSIP-21](./21) client to reduce ENS integration complexities.
 
 ## Motivation
 
@@ -20,9 +20,9 @@ The process of resolving ENS names requires multiple onchain calls and in-depth 
 
 Resolution has become more complex over time, especially with the introduction of [wildcard resolution](./10.md) and [multichain primary names](./19).  ENSv2 will also introduce a new registry design and many other improvements.
 
-Maintaining these changes across multiple client frameworks demands significant development work.  The growth and evolution of the ENS protocol should not be limited by the speed at which client code can be pushed into production.
+Maintaining these changes across multiple client frameworks demands significant development effort.  The growth and evolution of the ENS protocol should not be constrained by the pace of client deployments or hindered by outdated libraries.
 
-The UR offers a standard entrypoint for client frameworks to leverage to perform ENS resolution.  It lifts many algorithms out of client frameworks and puts them onchain for transparency and security.  This ENSIP standardizes the interface for [forward](#resolve) and [primary name](#reverse) resolution.
+The UR offers a standard entrypoint for client frameworks to perform ENS resolution.  It lifts many algorithms out of client frameworks and puts them onchain for transparency and security.  This ENSIP standardizes the interface for [forward](#resolve) and [primary name](#reverse) resolution.
 
 ## Specification
 
@@ -105,9 +105,9 @@ interface IUniversalResolver {
 
 This function performs onchain [ENSIP-1 § Registry](./#registry-specification) traversal of a DNS-encoded `name`.  It returns the first non-null `resolver` address, the namehash of `name` as `node`, and the `offset` into `name` that corresponds to the match.  If no resolver is found, `resolver` is null.
 
-This function does not perform any validity checks on the resolver and simply returns the value in the registry.  The resolver may not be a contract or a resolver.
+`findResolver()` does not perform any validity checks on the resolver and simply returns the value in the registry.  The resolver may not be a contract or a resolver.
 
-#### Pseudocode Example
+#### <a name="resolve-example">Pseudocode Example</a>
 
 ```js
 name = dnsEncode("sub.nick.eth") = "\x03sub\x04nick\x03eth\x00"
@@ -144,7 +144,7 @@ The UR automatically handles wrapping calldata and unwrapping responses when int
 
 #### Smart Multicall
 
-Resolvers are written to answer single requests, eg. `addr()` returns one address.  Traditionally, to perform multiple requests, the caller must perform multiple independent calls (in sequence, parallel, or via batched RPC) or utilize an [external multicall contract](https://www.multicall3.com/) which does not support CCIP-Read.
+Traditionally, resolvers have been written to answer direct profile requests, eg. `addr()` returns one address.  To perform multiple requests, the caller must perform multiple independent requests (in sequence, parallel, or via batched RPC) or utilize an [external multicall contract](https://www.multicall3.com/) which does not support CCIP-Read.
 
 The UR supports multicall with CCIP-Read with [smart execution](#smart-execution).
 
@@ -194,13 +194,13 @@ const error = decodeErrorResult({ data: result[2] }); // { errorName: 'Unsupport
 
 #### Smart Execution
 
-The UR will automatically determine the best method of execution.  If the resolver supports [ENSIP-X](#TODO) and the call is not a multicall or the resolver is `IExtendedResolver` and supports `RESOLVE_MULTICALL`, the resolver will be **invoked directly** without the [batch gateway](./21) infrastructure.  This passthrough mechanism greatly increases call efficiency and reduces latency.  If the call is a multicall, the resolver is responsible for merging any onchain results.
+The UR will automatically determine the best method of execution.  If the resolver supports [ENSIP-X](#TODO) and the call is not a multicall or the resolver is `IExtendedResolver` and supports feature `RESOLVE_MULTICALL`, the resolver will be **invoked directly** without the [batch gateway](./21) infrastructure.  This passthrough mechanism greatly increases call efficiency and reduces latency.  If the call is a multicall, the resolver is responsible for merging any onchain results.
 
 Otherwise, the UR will automatically collect any calls that revert `OffchainLookup`, perform them in parallel using the batch gateway, and return the results as expected.  By construction, this prioritizes onchain results over offchain results.
 
 ### reverse
 
-This function performs ENS primary name resolution according to [ENSIP-19](./19.md).  Provided a byte-encoded `lookupAddress` and `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  The UR supports CCIP-Read during the forward and reverse phases.  
+This function performs ENS primary name resolution according to [ENSIP-19](./19.md).  Provided a [byte-encoded](./9) `lookupAddress` and `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  The UR supports CCIP-Read during the forward and reverse phases.  
 
 * If [reverse resolution](./19#reverse-resolution) of the reverse name was not successful, reverts a [`resolve()` error](resolve-resolution-errors).
 * If the resolved primary name was null, returns `("", address(0), <reverseResolver>)`.
@@ -209,7 +209,7 @@ This function performs ENS primary name resolution according to [ENSIP-19](./19.
 
 `reverse()` is effectively (2) sequential `resolve()` calls.
 
-#### Pseudocode Example
+#### <a name="reverse-example">Pseudocode Example</a>
 
 ```js
 // valid primary name: "vitalik.eth" on Ethereum mainnet
