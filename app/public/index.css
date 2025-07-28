@@ -13,7 +13,7 @@ body {
 article {
     max-width: 800px;
     margin: 0 auto;
-    padding-bottom: 420px;
+    padding-bottom: 4rem;
     @apply px-4;
 }
 
@@ -39,12 +39,6 @@ nav ul li a {
     padding: 16px;
 }
 
-ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
 .ensip-list {
     @apply space-y-4 pt-4;
 
@@ -65,25 +59,22 @@ ul {
     color: #056aff;
 }
 
-pre {
-    background-color: #f6f8fa;
-    color: #1e2122;
-    padding: 16px;
-    font-size: 14px;
-    overflow-x: auto;
-    border: 1px solid #e1e4e8;
-    border-radius: 8px;
+pre,
+:not(pre) > code {
+    @apply bg-ens-grey1 border rounded-md border-ens-grey2 max-w-full overflow-x-auto text-ens-grey3 text-sm;
+}
 
-    max-width: 100%;
-    overflow-x: auto;
+pre {
+    @apply px-4 py-2 mb-2;
 }
 
 :not(pre) > code {
-    @apply bg-ens-grey1 border rounded-md border-ens-grey2 text-ens-grey2 leading-none px-1 py-1 inline-flex text-sm;
+    @apply leading-none p-1 inline-flex;
 }
 
 ::-webkit-scrollbar {
-    width: 14px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -99,6 +90,7 @@ pre {
 h1 {
     @apply text-4xl pt-6;
 }
+
 .content {
     overflow-x: hidden;
     @apply text-wrap;
@@ -115,13 +107,39 @@ h1 {
     p {
         @apply py-2;
     }
-    pre {
-        @apply py-2;
-    }
     a {
         @apply link;
     }
+    ul,
+    ol {
+        @apply pl-6;
+
+        p {
+            @apply py-0;
+        }
+        li {
+            @apply pb-2;
+        }
+    }
     ul {
-        @apply list-disc pl-6;
+        @apply list-disc;
+    }
+    ol {
+        @apply list-decimal;
+    }
+    blockquote {
+        @apply border-l-2 border-ens-grey2 pl-4 py-1 my-1;
+    }
+    table {
+        @apply w-full table-auto border border-ens-grey2;
+
+        th,
+        td {
+            @apply p-2 border-b border-ens-grey2;
+
+            &:not(:last-child) {
+                @apply border-r border-ens-grey2;
+            }
+        }
     }
 }

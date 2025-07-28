@@ -1,9 +1,13 @@
+import rehypeShiki from '@shikijs/rehype';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import postcss from 'postcss';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { remark } from 'remark';
+import rehypeStringify from 'rehype-stringify';
 import remarkFrontMatter from 'remark-frontmatter';
-import html from 'remark-html';
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import remarkRehype from 'remark-rehype';
+import { unified } from 'unified';
 
 import postcssConfig from '../postcss.config.js';
 import { App } from './App';
@@ -48,9 +52,13 @@ for (const file of files) {
         let frontmatter: Frontmatter;
         let title: string;
 
-        const result = await remark()
+        const result = await unified()
+            .use(remarkParse)
+            .use(remarkGfm)
+            .use(remarkRehype)
+            .use(rehypeShiki, { theme: 'github-light' })
+            .use(rehypeStringify)
             .use(remarkFrontMatter)
-            .use(html)
             .use(
                 validate(directPath, (returnData) => {
                     ({ title, frontmatter } = returnData);
