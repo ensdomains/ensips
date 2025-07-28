@@ -12,24 +12,21 @@ ensip:
 
 ## Abstract
 
-This ENSIP standardizes an universal entrypoint [UniversalResolver](#specification) (UR) for resolving ENS names according to the latest standards.  The UR contains onchain algorithms for [ENSIP-10 § Pseudocode](./10#pseudocode), [ENSIP-19 § Algorithm](./19#algorithm), and [ENSIP-21](./21) client implementation.
+This ENSIP standardizes an universal entrypoint [UniversalResolver](#specification) (UR) for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10 § Pseudocode](./10#pseudocode) and [ENSIP-19 § Algorithm](./19#algorithm), and a [ENSIP-21](./21) client.
 
 ## Motivation
 
-The process of resolving ENS names requires multiple onchain calls in-depth knowledge of the latest ENS standards.
+The process of resolving ENS names requires multiple onchain calls and in-depth knowledge of the [latest standards](/).
 
-Resolution is becoming more involved over time, especially with the introduction of wildcard resolution (ENSIP-10), and more recently cross-chain reverse resolution (ENSIP-19).
-These factors mean there is a relatively high burden to implement ENS, with high latency, and a large amount of developer hours to spend to understand and implement the correct resolution process.
+Resolution has become more complex over time, especially with the introduction of [wildcard resolution](./10.md) and [multichain primary names](./19).  ENSv2 will also introduce a new registry design and many other improvements.
 
-Given these factors, there are significant incentives for incorrect/incomplete ENS implementations, or implementations that do not rely on Ethereum as the source of truth.
+Maintaining these changes across multiple client frameworks demands significant development work.  The growth and evolution of the ENS protocol should not be limited by the speed at which client code can be pushed into production.
 
-Beyond the implementation burdens, maintaining many resolution implementations means that any change to ENS resolution that an ENSIP might provide becomes a challenging task to propagate amongst the ecosystem, and as such significantly limits the growth of the ENS protocol with novel concepts.
-
-As a solution for these challenges, this specification proposes an interface that allows universally resolving any ENS name, or any reverse name.
+The UR offers a standard entrypoint for client frameworks to leverage to perform ENS resolution.  It lifts many algorithms out of client frameworks and puts them onchain for transparency and security.  This ENSIP standardizes the interface for [forward](#resolve) and [primary name](#reverse) resolution.
 
 ## Specification
 
-The UR has the following Solidity interface:
+The UR has the following Solidity [interface](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/universalResolver/IUniversalResolver.sol):
 
 ```solidity
 /// @dev Interface selector: `0xcd191b34`
@@ -106,22 +103,22 @@ interface IUniversalResolver {
 
 ### findResolver
 
-This function performs onchain [ENSIP-1 § Registry](./#registry-specification) traversal of a DNS-encoded `name`.  It returns the first non-null `resolver` address, the namehash of `name` as `node`, and the `offset` into `name` that corresponded to the match.  If no resolver is found, `resolver` is null.
+This function performs onchain [ENSIP-1 § Registry](./#registry-specification) traversal of a DNS-encoded `name`.  It returns the first non-null `resolver` address, the namehash of `name` as `node`, and the `offset` into `name` that corresponds to the match.  If no resolver is found, `resolver` is null.
 
 This function does not perform any validity checks on the resolver and simply returns the value in the registry.  The resolver may not be a contract or a resolver.
 
-#### Example
+#### Pseudocode Example
 
 ```js
 name = dnsEncode("sub.nick.eth") = "\x03sub\x04nick\x03eth\x00"
 
 registry[namehash(                      "\x00")].resolver = null
-registry[namehash(               "\x03eth\x00")].resolver = null
-registry[namehash(       "\x04nick\x03eth\x00")].resolver = 0x1111111111111111111111111111111111111111
+registry[namehash(               "\x03eth\x00")].resolver = 0x1111111111111111111111111111111111111111
+registry[namehash(       "\x04nick\x03eth\x00")].resolver = 0x2222222222222222222222222222222222222222
 registry[namehash("\x03sub\x04nick\x03eth\x00")].resolver = null
 
 findResolver(name) = [
-    0x1111111111111111111111111111111111111111, // resolver for "sub.nick.eth"
+    0x2222222222222222222222222222222222222222, // resolver for "sub.nick.eth"
     0xe3d81fd7b7e26b124642b4f160ea05f65a28ecfac48ab767c02530f7865e1c4c, // namehash("sub.nick.eth")
     4, // offset into name, eg. name.slice(4) = dnsEncode("nick.eth") = "\x04nick\x03eth\x00"
 ]
@@ -129,120 +126,120 @@ findResolver(name) = [
 
 ### resolve
 
-This function performs ENS forward resolution according to [ENSIP-10](./10#pseudocode) using the `resolver` found by [`findResolver()`](#findresolver).  It provides a standard interface for interacting [ENSIP-1](./1) and [ENSIP-10](./10) resolvers for onchain and offchain resolution.  Provided a DNS-encoded `name` and ABI-encoded `data`, it returns the ABI-encoded resolver `result` and the valid address of the `resolver`.
+This function performs ENS forward resolution using the `resolver` found by [`findResolver()`](#findresolver).  It provides a standard interface for interacting [ENSIP-1](./1) and [ENSIP-10](./10) resolvers for onchain and offchain resolution.  Provided a DNS-encoded `name` and ABI-encoded `data`, it returns the ABI-encoded resolver `result` and the valid `resolver` address.
+
+The UR automatically handles wrapping calldata and unwrapping responses when interacting with an [`IExtendedResolver`](./10#pseudocode) and it can safely interact contracts deployed before [EIP-140](https://eips.ethereum.org/EIPS/eip-140).
 
 ##### <a name="resolve-resolution-errors">Resolution Errors</a>
 
-* If no resolver was found according to the standard, reverts `ResolverNotFound`.
+* If no resolver was found, reverts `ResolverNotFound`.
 * If the resolver was not a contract, reverts `ResolverNotContract`.
 * If [EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) (CCIP-Read) was required and it was not handled by the client, reverts `OffchainLookup`.
 * If CCIP-Read was handled but the `OffchainLookup` failed, reverts `HTTPError`.
 
 ##### <a name="resolve-resolver-errors">Resolver Errors</a>
 
-* If the resolver function was not implemented, reverts `UnsupportedResolverProfile`.
-* If the resolver function reverted, reverts `ResolverError`.
+* If the called function was not implemented, reverts `UnsupportedResolverProfile`.
+* If the called function reverted, reverts `ResolverError`.
 
 #### Smart Multicall
 
-Resolvers are written to answer singular requests, eg. `addr()` returns one address.  Traditionally, to perform multiple requests, the caller must perform multiple requests (in sequence, parallel, or via batched RPC) or utilize an [external multicall contract](https://www.multicall3.com/).  Unfortunately, a multicall containing a CCIP-Read request does not work.
+Resolvers are written to answer single requests, eg. `addr()` returns one address.  Traditionally, to perform multiple requests, the caller must perform multiple independent calls (in sequence, parallel, or via batched RPC) or utilize an [external multicall contract](https://www.multicall3.com/) which does not support CCIP-Read.
 
-To perform multiple calls, encode with the following function, and call [resolve()](#resolve) normally.
+The UR supports multicall with CCIP-Read with [smart execution](#smart-execution).
+
+To perform multiple calls:
 ```solidity
-interface IMulticallable {
-    /// @dev Selector: 0xac9650d8
-    function multicall(bytes[] calldata data) external view returns (bytes[] memory);
-}
-```
-The same [Resolution Errors](#resolve-resolution-errors) apply but [Resolver Errors](#resolve-resolver-errors) are handled differently.  The call always succeeds and decodes into an array of results via `abi.decode(result, (bytes[]))`.  The number of calls is always equal to the number of results.  If an individual result is not multiple of 32 bytes, it is an ABI-encoded error.
-
-#### Example
-
-```solidity
-// encode
 bytes[] memory calls = new bytes[](3);
 calls[0] = abi.encodeCall(IAddrResolver.addr, (node));
 calls[1] = abi.encodeCall(ITextResolver.text, (node, "avatar"));
 calls[2] = hex"00000000"; // invalid selector
+```
+```ts
+const calls = [
+    encodeFunctionData({ functionName: "addr", args: [node] }),
+    encodeFunctionData({ functionName: "text", args: [node, "avatar"] }),
+    '0x00000000',
+];
+```
+Using the following [interface](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/IMulticallable.sol):
+```solidity
+interface IMulticallable {
+    function multicall(bytes[] calldata data) external view returns (bytes[] memory);
+}
+```
+Encode the calls, invoke [`resolve()`](#resolve) normally, and decode the result:
+```solidity
 bytes memory data = abi.encodeCall(IMulticallable.multicall, (calls));
+(bytes memory result, address resolver) = UR.resolve(name, data); // note: could revert OffchainLookup
+bytes[] memory results = abi.decode(result, (bytes));
+```
+```ts
+const data = encodeFunctionData({ functionName: "multicall", args: [calls] });
+const [result, resolver] = await UR.resolve(name, data);
+const results = decodeFunctionResult({ functionName: "multicall", data: result });
+```
+The same [resolution errors](#resolve-resolution-errors) apply but [resolver errors](#resolve-resolver-errors) are handled differently.  The call **always succeeds** and decodes into an array of results.  The number of calls is always equal to the number of results.  If `results[i]` is not multiple of 32 bytes, it is an ABI-encoded error for the corresponding `calls[i]`.
 
-// call
-bytes memory result = UR.resolve(name, data);
-
-/// decode
-bytes[] memory results = abi.decode(result, (bytes[]));
-
+```solidity
 address ethAddress = abi.decode(results[0], (address));
 string avatar = abi.decode(results[1], (string));
 // results[2] == abi.encodeWithSelector(UnsupportedResolverProfile.selector, 0x00000000);
 ```
+```ts
+const ethAddress = decodeFunctionResult({ functionName: 'addr', data: results[0] });
+const avatar = decodeFunctionResult({ functionName: 'text', data: results[1] });
+const error = decodeErrorResult({ data: result[2] }); // { errorName: 'UnsupportedResolverProfile', args: ['0x00000000'] }
+```
+
+#### Smart Execution
+
+The UR will automatically determine the best method of execution.  If the resolver supports [ENSIP-X](#TODO) and the call is not a multicall or the resolver is `IExtendedResolver` and supports `RESOLVE_MULTICALL`, the resolver will be **invoked directly** without the [batch gateway](./21) infrastructure.  This passthrough mechanism greatly increases call efficiency and reduces latency.  If the call is a multicall, the resolver is responsible for merging any onchain results.
+
+Otherwise, the UR will automatically collect any calls that revert `OffchainLookup`, perform them in parallel using the batch gateway, and return the results as expected.  By construction, this prioritizes onchain results over offchain results.
 
 ### reverse
 
-The `reverse` function can be used by any ENS client as a complete replacement for offchain reverse name resolution methods.
+This function performs ENS primary name resolution according to [ENSIP-19](./19.md).  Provided a byte-encoded `lookupAddress` and `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  The UR supports CCIP-Read during the forward and reverse phases.  
 
-This function takes two parameters:
+* If [reverse resolution](./19#reverse-resolution) of the reverse name was not successful, reverts a [`resolve()` error](resolve-resolution-errors).
+* If the resolved primary name was null, returns `("", address(0), <reverseResolver>)`.
+* If [forward resolution](./19#forward-resolution) of the primary name was not successful, also reverts a [`resolve()` error](resolve-resolution-errors).
+* If the resolved address of `coinType` doesn't equal the `lookupAddress`, reverts `ReverseAddressMismatch`.
 
-- `lookupAddress`: The address to resolve the name for, in **decoded** form (as per ENSIP-9).
-  - Example: with an Ethereum address of `0x314159265dD8dbb310642f98f50C066173C1259b`, this value would be `314159265dd8dbb310642f98f50c066173c1259b`.
-  - Example: with a Bitcoin address of `1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa`, this value would be `0062e907b15cbf27d5425399ebf6f0fb50ebb88f18`.
-- `coinType`: The coin type to resolve the name for, as defined by ENSIP-9 and ENSIP-11.
+`reverse()` is effectively (2) sequential `resolve()` calls.
 
-The output of this function is:
+#### Pseudocode Example
 
-- `name`: The verified reverse resolved name.
-- `resolver`: The address of the resolver that resolved the `addr` record for the name (i.e. forward verification).
-- `reverseResolver`: The address of the resolver that resolved the `name` record.
+```js
+// valid primary name: "vitalik.eth" on Ethereum mainnet
+reverse("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 60)
+    1. reverse: resolve("d8da6bf26964af9d7eed9e03e53415d37aa96045.addr.reverse", name()) = "vitalik.eth"
+    2. forward: resolve("vitalik.eth", addr(60)) = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+    3. 0xd8dA == 0xd8dA => ✅️ "vitalik.eth"
 
-In the scenario that a name is not set for the given parameters, all outputs will resolve to `0x`.
+// invalid primary name: imposter vitalik.eth
+reverse("0x314159265dD8dbb310642f98f50C066173C1259b", 60)
+	1. reverse: resolve("314159265dd8dbb310642f98f50c066173c1259b.addr.reverse", name()) = "vitalik.eth"
+	2. forward: resolve("vitalik.eth", addr(60)) = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+	3. 0x3141 != 0xd8d => ❌️ ReverseAddressMismatch()
 
-### Errors
-
-- **ResolverNotFound**
-  - A resolver could not be found for the given name.
-  - Parameters
-    - `bytes name`: The name a resolver could not be found for.
-  - Can throw from **all** functions.
-- **ResolverNotContract**
-  - The resolver found for the given name is not a contract.
-  - Parameters
-    - `bytes name`: The name the resolver was found for.
-    - `address resolver`: The address of the resolver that is not a contract.
-  - Can throw from **all** functions.
-- **UnsupportedResolverProfile**
-  - The resolver for the given name did not respond, i.e. responded with `0x`.
-  - Parameters
-    - `bytes4 selector`: The function selector that the resolver did not respond to.
-  - Can throw from **all** functions.
-  - Can be propagated up from an internal resolver error.
-- **HttpError**
-  - An HTTP error occurred on a resolving gateway, either from a gateway used by the UniversalResolver itself, or by the resolver for the given name.
-  - Parameters
-    - `uint16 status`: The HTTP error status, e.g. 400, 404
-    - `string message`: The HTTP error message, e.g. "Resource not found"
-  - Can throw from **all** functions.
-  - Can be propagated up from an internal resolver error.
-- **ReverseAddressMismatch**
-  - The resolved address from reverse resolution does not match the resolved address for the primary name.
-  - Parameters
-    - `string primary`: The resolved primary name from reverse resolution.
-    - `bytes primaryAddress`: The resolved address for the primary name, from reverse resolution. In decoded form (as per ENSIP-9).
-  - Can throw from the **reverse** function.
-- **ResolverError**
-  - The resolver for the given name threw an unrecognised error. Used to distinguish between a resolution error and an internal resolver error.
-  - Parameters
-    - `bytes errorData`: The error data thrown from the resolver.
-  - Can throw from **all** functions.
+// no primary name: burn address on Base mainnet
+resolve("0x000000000000000000000000000000000000dEaD", 0x80000000 ^ 8453)
+	1. reverse: resolve("000000000000000000000000000000000000dead.addr.reverse", name()) => ❌️ ResolverNotFound()
+```
 
 ## Backwards Compatibility
 
-The UR supports **ALL** known resolver types.
+The UR supports **ALL** known resolver types if the caller supports CCIP-Read.  Otherwise, it can only resolve onchain names.
 
-The UR is a complete replacement for client-side resolution.  Client frameworks should focus on assembling calldata and processing responses and use the UR to facilitate ENS resolution.
+It is a **complete replacement** for existing ENS resolution procedures.  Client frameworks should focus on building calldata and handling responses and rely on UR to facilitate ENS resolution.
 
 ## Security Considerations
 
-The UR uses a batch gateway to perform [EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) requests.  If the client does not support [ENSIP-21](./21) an trustless external batch gateway service is used which adds latency and leaks information.
+The UR uses a batch gateway to perform [EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) requests.  If the client does not support [ENSIP-21](./21), an trustless external batch gateway service is used which adds latency and leaks information.
+
+The UR is deployed as immutable contract and as an ENS DAO-managed upgradeable proxy.  The main purpose of the proxy is to facilitate a seamless transition to [ENS v2](https://ens.domains/ensv2) and track the latest standards.  Client frameworks should default to the proxy so their libraries are future-proof, with the option to specify an alternative implementation.
 
 ## Copyright
 
