@@ -12,7 +12,7 @@ ensip:
 
 ## Abstract
 
-This ENSIP standardizes an universal entrypoint [UniversalResolver](#specification) (UR) for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10 § Pseudocode](./10#pseudocode) and [ENSIP-19 § Algorithm](./19#algorithm), and a [ENSIP-21](./21) client to reduce ENS integration complexities.
+This ENSIP standardizes [IUniversalResolver](#specification) (UR), an universal entrypoint for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10 § Pseudocode](./10#pseudocode) and [ENSIP-19 § Algorithm](./19#algorithm), and a [ENSIP-21](./21) client to simplify ENS integration complexities.
 
 ## Motivation
 
@@ -103,7 +103,7 @@ interface IUniversalResolver {
 
 ### findResolver
 
-This function performs onchain [ENSIP-1 § Registry](./#registry-specification) traversal of a DNS-encoded `name`.  It returns the first non-null `resolver` address, the namehash of `name` as `node`, and the `offset` into `name` that corresponds to the match.  If no resolver is found, `resolver` is null.
+This function performs onchain [ENSIP-1 § Registry](./#registry-specification) traversal of a DNS-encoded `name`.  It returns the first non-null `resolver` address, the namehash of `name` as `node`, and the `offset` into `name` that corresponds to the resolver.  If no resolver is found, `resolver` is null.
 
 `findResolver()` does not perform any validity checks on the resolver and simply returns the value in the registry.  The resolver may not be a contract or a resolver.
 
@@ -112,16 +112,15 @@ This function performs onchain [ENSIP-1 § Registry](./#registry-specification) 
 ```js
 name = dnsEncode("sub.nick.eth") = "\x03sub\x04nick\x03eth\x00"
 
-registry[namehash(                      "\x00")].resolver = null
-registry[namehash(               "\x03eth\x00")].resolver = 0x1111111111111111111111111111111111111111
-registry[namehash(       "\x04nick\x03eth\x00")].resolver = 0x2222222222222222222222222222222222222222
-registry[namehash("\x03sub\x04nick\x03eth\x00")].resolver = null
+1. registry[namehash("\x03sub\x04nick\x03eth\x00")] = null ❌️
+2. registry[namehash(/*-4-*/"\x04nick\x03eth\x00")] = 0x2222222222222222222222222222222222222222 ✅️ // "nick.eth"
+3. registry[namehash(/*-----9-----*/"\x03eth\x00")] = ... // not
+4. registry[namehash(/*---------13-------*/"\x00")] = ... // checked
 
-findResolver(name) = [
-    0x2222222222222222222222222222222222222222, // resolver for "sub.nick.eth"
-    0xe3d81fd7b7e26b124642b4f160ea05f65a28ecfac48ab767c02530f7865e1c4c, // namehash("sub.nick.eth")
-    4, // offset into name, eg. name.slice(4) = dnsEncode("nick.eth") = "\x04nick\x03eth\x00"
-]
+findResolver(name)
+    resolver = registry[namehash("\x04nick\x03eth\x00")] = 0x2222222222222222222222222222222222222222
+        node = namehash("sub.nick.eth") = 0xe3d81fd7b7e26b124642b4f160ea05f65a28ecfac48ab767c02530f7865e1c4c
+      offset = 4 // name.slice(4) = "\x04nick\x03eth\x00" = dnsEncode("nick.eth")
 ```
 
 ### resolve
@@ -159,7 +158,7 @@ calls[2] = hex"00000000"; // invalid selector
 const calls = [
     encodeFunctionData({ functionName: "addr", args: [node] }),
     encodeFunctionData({ functionName: "text", args: [node, "avatar"] }),
-    '0x00000000',
+    '0x00000000', // invalid selector
 ];
 ```
 Using the following [interface](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/resolvers/IMulticallable.sol):
@@ -184,7 +183,7 @@ The same [resolution errors](#resolve-resolution-errors) apply but [resolver err
 ```solidity
 address ethAddress = abi.decode(results[0], (address));
 string avatar = abi.decode(results[1], (string));
-// results[2] == abi.encodeWithSelector(UnsupportedResolverProfile.selector, 0x00000000);
+// results[2] == abi.encodeWithSelector(UnsupportedResolverProfile.selector, bytes4(0x00000000));
 ```
 ```ts
 const ethAddress = decodeFunctionResult({ functionName: 'addr', data: results[0] });
@@ -200,7 +199,7 @@ Otherwise, the UR will automatically collect any calls that revert `OffchainLook
 
 ### reverse
 
-This function performs ENS primary name resolution according to [ENSIP-19](./19.md).  Provided a [byte-encoded](./9) `lookupAddress` and `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  The UR supports CCIP-Read during the forward and reverse phases.  
+This function performs ENS primary name resolution according to [ENSIP-19](./19.md).  Provided a [byte-encoded](./9) `lookupAddress` and desired `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  The UR supports CCIP-Read during the forward and reverse phases.  
 
 * If [reverse resolution](./19#reverse-resolution) of the reverse name was not successful, reverts a [`resolve()` error](resolve-resolution-errors).
 * If the resolved primary name was null, returns `("", address(0), <reverseResolver>)`.
@@ -233,7 +232,7 @@ resolve("0x000000000000000000000000000000000000dEaD", 0x80000000 ^ 8453)
 
 The UR supports **ALL** known resolver types if the caller supports CCIP-Read.  Otherwise, it can only resolve onchain names.
 
-It is a **complete replacement** for existing ENS resolution procedures.  Client frameworks should focus on building calldata and handling responses and rely on UR to facilitate ENS resolution.
+It is a **complete replacement** for existing ENS resolution procedures.  Client frameworks should focus on building calldata and handling responses and rely on the UR to facilitate ENS resolution.
 
 ## Security Considerations
 
