@@ -12,7 +12,7 @@ ensip:
 
 ## Abstract
 
-This ENSIP standardizes [IUniversalResolver](#specification) (UR), an universal entrypoint for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10 § Pseudocode](./10#pseudocode) and [ENSIP-19 § Algorithm](./19#algorithm), and a [ENSIP-21](./21) client to simplify ENS integration complexities.
+This ENSIP standardizes [IUniversalResolver](#specification) (UR), an universal entrypoint for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10](./10#pseudocode), [ENSIP-19](./19#algorithm), and [ENSIP-21](./21) to reduce ENS integration complexities.
 
 ## Motivation
 
@@ -22,7 +22,7 @@ Resolution has become more complex over time, especially with the introduction o
 
 Maintaining these changes across multiple client frameworks demands significant development effort.  The growth and evolution of the ENS protocol should not be constrained by the pace of client deployments or hindered by outdated libraries.
 
-The UR offers a standard entrypoint for client frameworks to perform ENS resolution.  It lifts many algorithms out of client frameworks and puts them onchain for transparency and security.  This ENSIP standardizes the interface for [forward](#resolve) and [primary name](#reverse) resolution.
+The UR offers a standard entrypoint for client frameworks to perform ENS resolution.  It lifts many algorithms out of client frameworks and puts them onchain for transparency and security.  This ENSIP standardizes an interface for [forward](#resolve) and [primary name](#reverse) resolution.
 
 ## Specification
 
@@ -55,37 +55,38 @@ interface IUniversalResolver {
     /// @dev Error selector: `0x01800152`
     error HttpError(uint16 status, string message);
 
-    /// @dev Find the resolver address for `name`.
-    ///      Does not perform any validity checks on the resolver.
+    /// @notice Find the resolver address for `name`.
+    ///         Does not perform any validity checks on the resolver.
     /// @param name The name to search.
-    /// @return resolver The resolver or `address(0)` if not found.
+    /// @return resolver The found resolver, or null if not found.
     /// @return node The namehash of `name`.
-    /// @return offset The offset into `name` corresponding to `resolver`.
+    /// @return resolverOffset The offset into `name` corresponding to `resolver`.
     function findResolver(
         bytes memory name
-    ) external view returns (address resolver, bytes32 node, uint256 offset);
+    )
+        external
+        view
+        returns (address resolver, bytes32 node, uint256 resolverOffset);
 
-    /// @notice Performs ENS name resolution for the supplied name and resolution data.
-    /// @notice Caller should enable EIP-3668.
-    /// @param name The name to resolve, in normalised and DNS-encoded form.
-    /// @param data The resolution data, as specified in ENSIP-10.
-    ///             For a multicall, the data should be encoded as `multicall(bytes[])`.
-    /// @return result The result of the resolution.
-    ///                For a multicall, the result is encoded as `(bytes[])`.
+    /// @notice Performs ENS forward resolution for the supplied name and data.
+    ///         Caller should enable EIP-3668.
+    /// @param name The DNS-encoded name to resolve.
+    /// @param data The ABI-encoded resolver calldata.
+    ///             For a multicall, encode as `multicall(bytes[])`.
+    /// @return result The ABI-encoded response for the calldata.
+    ///                For a multicall, the results are encoded as `(bytes[])`.
     /// @return resolver The resolver that was used to resolve the name.
     function resolve(
         bytes calldata name,
         bytes calldata data
     ) external view returns (bytes memory result, address resolver);
 
-    /// @notice Performs ENS reverse resolution for the supplied address and coin type.
-    /// @notice Caller should enable EIP-3668.
-    /// @param lookupAddress The address to reverse resolve, in encoded form.
-    /// @param coinType The coin type to use for the reverse resolution.
-    ///                 For ETH, this is 60.
-    ///                 For other EVM chains, coinType is calculated as `0x80000000 | chainId`.
-    /// @return primary The reverse resolution result.
-    /// @return resolver The resolver that was used to resolve the name.
+    /// @notice Performs ENS primary name resolution for the supplied address and coin type, as specified in ENSIP-19.
+    ///         Caller should enable EIP-3668.
+    /// @param lookupAddress The byte-encoded address to resolve.
+    /// @param coinType The coin type of the address to resolve.
+    /// @return primary The verified primary name, or null if not set.
+    /// @return resolver The resolver that was used to resolve the primary name.
     /// @return reverseResolver The resolver that was used to resolve the reverse name.
     function reverse(
         bytes calldata lookupAddress,
@@ -103,7 +104,7 @@ interface IUniversalResolver {
 
 ### findResolver
 
-This function performs onchain [ENSIP-1 § Registry](./#registry-specification) traversal of a DNS-encoded `name`.  It returns the first non-null `resolver` address, the namehash of `name` as `node`, and the `offset` into `name` that corresponds to the resolver.  If no resolver is found, `resolver` is null.
+This function performs onchain [ENSIP-1 § Registry](./#registry-specification) traversal of a DNS-encoded `name`.  It returns the first non-null `resolver` address, the namehash of `name` as `node`, and the `resolverOffset` into `name` that corresponds to the resolver.  If no resolver is found, `resolver` is null.
 
 `findResolver()` does not perform any validity checks on the resolver and simply returns the value in the registry.  The resolver may not be a contract or a resolver.
 
@@ -119,7 +120,7 @@ name = dnsEncode("sub.nick.eth") = "\x03sub\x04nick\x03eth\x00"
 
 findResolver(name)
     resolver = registry[namehash("\x04nick\x03eth\x00")] = 0x2222222222222222222222222222222222222222
-        node = namehash("sub.nick.eth") = 0xe3d81fd7b7e26b124642b4f160ea05f65a28ecfac48ab767c02530f7865e1c4c
+        node = namehash("\x03sub\x04nick\x03eth\x00") = 0xe3d81fd7b7e26b124642b4f160ea05f65a28ecfac48ab767c02530f7865e1c4c
       offset = 4 // name.slice(4) = "\x04nick\x03eth\x00" = dnsEncode("nick.eth")
 ```
 
