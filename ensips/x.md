@@ -233,11 +233,11 @@ resolve("0x000000000000000000000000000000000000dEaD", 0x80000000 ^ 8453)
 
 The UR supports **ALL** known resolver types if the caller supports CCIP-Read.  Otherwise, it can only resolve onchain names.
 
-It is a **complete replacement** for existing ENS resolution procedures.  Client frameworks should focus on building calldata and handling responses and rely on the UR to facilitate ENS resolution.
+It is a **complete replacement** for existing ENS resolution procedures.  Client frameworks should focus on building calldata and handling responses and rely on the UR to facilitate resolution.
 
 ## Security Considerations
 
-The UR uses a batch gateway to perform [EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) requests.  If the client does not support [ENSIP-21](./21), an trustless external batch gateway service is used which adds latency and leaks information.
+The UR uses a batch gateway to perform CCIP-Read requests.  If the client does not support [ENSIP-21](./21), a trustless external batch gateway service is used which adds latency and leaks information.
 
 The UR is deployed as immutable contract and as an ENS DAO-managed upgradeable proxy.  The main purpose of the proxy is to facilitate a seamless transition to [ENS v2](https://ens.domains/ensv2) and track the latest standards.  Client frameworks should default to the proxy so their libraries are future-proof, with the option to specify an alternative implementation.
 
