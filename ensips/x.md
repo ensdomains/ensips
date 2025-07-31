@@ -1,5 +1,5 @@
 ---
-description: A list of EIP-X features for ENS.
+description: EIP-X features for ENS.
 contributors:
   - raffy.eth
 ensip:
@@ -21,7 +21,9 @@ EIP-X is the solution to this problem and enables an new mechanism for expressin
 
 ## Specification
 
-Contract features are defined in EIP-X.  ENS features should be a reverse domain name (eg. `eth.ens.registrar.free`) that uniquely defines its implication.
+Contract features are defined in EIP-X.
+
+ENS features should be a reverse domain name (eg. `eth.ens.registrar.free`) that uniquely defines its implication.
 
 ### Resolver with Features
 
