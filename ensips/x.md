@@ -128,7 +128,7 @@ findResolver(name)
 
 This function performs ENS forward resolution using the `resolver` found by [`findResolver()`](#findresolver).  It provides a standard interface for interacting [ENSIP-1](./1) and [ENSIP-10](./10) resolvers for onchain and offchain resolution.  Provided a DNS-encoded `name` and ABI-encoded `data`, it returns the ABI-encoded resolver `result` and the valid `resolver` address.
 
-The UR automatically handles wrapping calldata and unwrapping responses when interacting with an [`IExtendedResolver`](./10#pseudocode) and it can safely interact contracts deployed before [EIP-140](https://eips.ethereum.org/EIPS/eip-140).
+The UR automatically handles wrapping calldata and unwrapping responses when interacting with an [`IExtendedResolver`](./10#pseudocode) and safely interacts with contracts deployed before [EIP-140](https://eips.ethereum.org/EIPS/eip-140).
 
 ##### <a name="resolve-resolution-errors">Resolution Errors</a>
 
@@ -194,9 +194,9 @@ const error = decodeErrorResult({ data: result[2] }); // { errorName: 'Unsupport
 
 #### Smart Execution
 
-The UR will automatically determine the best method of execution.  If the resolver supports [ENSIP-X](#TODO) and the call is not a multicall or the resolver is `IExtendedResolver` and supports feature `RESOLVE_MULTICALL`, the resolver will be **invoked directly** without the [batch gateway](./21) infrastructure.  This passthrough mechanism greatly increases call efficiency and reduces latency.  If the call is a multicall, the resolver is responsible for merging any onchain results.
+The UR automatically determines the best method of execution.  If the resolver supports [ENSIP-X](#TODO) and the call is not a multicall or the resolver is `IExtendedResolver` and supports feature `RESOLVE_MULTICALL`, the resolver will be **invoked directly** without the [batch gateway](./21) infrastructure.  This passthrough mechanism greatly increases call efficiency and reduces latency.  If the call is a multicall, the resolver is responsible for merging any onchain results.
 
-Otherwise, the UR will automatically collect any calls that revert `OffchainLookup`, perform them in parallel using the batch gateway, and return the results as expected.  By construction, this prioritizes onchain results over offchain results.
+Otherwise, the UR automatically collects any calls that revert `OffchainLookup`, performs them in parallel using the batch gateway, and merges the results as expected.  By construction, this prioritizes onchain results over offchain results.
 
 ### reverse
 
@@ -239,7 +239,7 @@ It is a **complete replacement** for existing ENS resolution procedures.  Client
 
 The UR uses a batch gateway to perform CCIP-Read requests.  If the client does not support [ENSIP-21](./21), a trustless external batch gateway service is used which adds latency and leaks information.
 
-The UR is deployed as immutable contract and as an ENS DAO-managed upgradeable proxy.  The main purpose of the proxy is to facilitate a seamless transition to [ENS v2](https://ens.domains/ensv2) and track the latest standards.  Client frameworks should default to the proxy so their libraries are future-proof, with the option to specify an alternative implementation.
+The UR is deployed as an immutable contract and as an ENS DAO-managed upgradeable proxy.  The main purpose of the proxy is to facilitate a seamless transition to [ENS v2](https://ens.domains/ensv2) and track the latest standards.  Client frameworks should default to the proxy so their libraries are future-proof, with the option to specify an alternative implementation.
 
 ## Copyright
 
