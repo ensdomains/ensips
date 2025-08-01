@@ -12,7 +12,7 @@ ensip:
 
 ## Abstract
 
-This ENSIP standardizes [IUniversalResolver](#specification) (UR), an universal entrypoint for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10](./10#pseudocode), [ENSIP-19](./19#algorithm), and [ENSIP-21](./21) to reduce ENS integration complexities.
+This ENSIP standardizes [IUniversalResolver](#specification) (UR), an universal entrypoint for resolving ENS names.  The UR incorporates onchain algorithms for [ENSIP-10](./10#pseudocode), [ENSIP-19](./19#algorithm), [ENSIP-21](./21), and [ENSIP-22](./22) to reduce ENS integration complexities.
 
 ## Motivation
 
@@ -146,9 +146,7 @@ The UR automatically handles wrapping calldata and unwrapping responses when int
 
 Traditionally, resolvers have been written to answer direct profile requests, eg. `addr()` returns one address.  To perform multiple requests, the caller must perform multiple independent requests (in sequence, parallel, or via batched RPC) or utilize an [external multicall contract](https://www.multicall3.com/) which does not support CCIP-Read.
 
-The UR supports multicall with CCIP-Read with [smart execution](#smart-execution).
-
-To perform multiple calls:
+The UR supports multicall with CCIP-Read.  To perform multiple calls:
 ```solidity
 bytes[] memory calls = new bytes[](3);
 calls[0] = abi.encodeCall(IAddrResolver.addr, (node));
@@ -176,7 +174,7 @@ bytes[] memory results = abi.decode(result, (bytes));
 ```
 ```ts
 const data = encodeFunctionData({ functionName: "multicall", args: [calls] });
-const [result, resolver] = await UR.resolve(name, data);
+const [result, resolver] = await UR.read.resolve(name, data);
 const results = decodeFunctionResult({ functionName: "multicall", data: result });
 ```
 The same [resolution errors](#resolve-resolution-errors) apply but [resolver errors](#resolve-resolver-errors) are handled differently.  The call **always succeeds** and decodes into an array of results.  The number of calls is always equal to the number of results.  If `results[i]` is not multiple of 32 bytes, it is an ABI-encoded error for the corresponding `calls[i]`.
@@ -192,12 +190,6 @@ const avatar = decodeFunctionResult({ functionName: 'text', data: results[1] });
 const error = decodeErrorResult({ data: result[2] }); // { errorName: 'UnsupportedResolverProfile', args: ['0x00000000'] }
 ```
 
-#### Smart Execution
-
-The UR automatically determines the best method of execution.  If the resolver supports [ENSIP-X](#TODO) and the call is not a multicall or the resolver is `IExtendedResolver` and supports feature `RESOLVE_MULTICALL`, the resolver will be **invoked directly** without the [batch gateway](./21) infrastructure.  This passthrough mechanism greatly increases call efficiency and reduces latency.  If the call is a multicall, the resolver is responsible for merging any onchain results.
-
-Otherwise, the UR automatically collects any calls that revert `OffchainLookup`, performs them in parallel using the batch gateway, and merges the results as expected.  By construction, this prioritizes onchain results over offchain results.
-
 ### reverse
 
 This function performs ENS primary name resolution according to [ENSIP-19](./19.md).  Provided a [byte-encoded](./9) `lookupAddress` and desired `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  The UR supports CCIP-Read during the forward and reverse phases.  
@@ -212,7 +204,7 @@ This function performs ENS primary name resolution according to [ENSIP-19](./19.
 #### <a name="reverse-example">Pseudocode Example</a>
 
 ```js
-// valid primary name: "vitalik.eth" on Ethereum mainnet
+// valid primary name: vitalik.eth on mainnet
 reverse("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 60)
     1. reverse: resolve("d8da6bf26964af9d7eed9e03e53415d37aa96045.addr.reverse", name()) = "vitalik.eth"
     2. forward: resolve("vitalik.eth", addr(60)) = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
