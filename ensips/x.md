@@ -38,7 +38,7 @@ If a resolver is an [`IExtendedResolver`](./10) and supports this feature, `reso
 
 For resolvers that utilize CCIP-Read, this feature permits a single `OffchainLookup` request to fetch multiple records, which greatly reduces latency and network traffic.
 
-A resolver with this feature may always be invoked directly without [batch gateway](./21) infrastructure.
+A resolver with this feature may always be invoked directly without batch gateway infrastructure.
 
 ## Backwards Compatibility
 
