@@ -17,7 +17,7 @@ This ENSIP standardizes [ERC-7996](https://eips.ethereum.org/EIPS/eip-x) contrac
 
 ENS has maintained backwards compatibility with contracts created in 2016 through extensive use of [ERC-165](https://eips.ethereum.org/EIPS/eip-165).  Unfortunately, not all contract capabilities can be expressed through an unique interface.
 
-Features allow expression of contract capabilities that preserve existing interfaces. This proposal standardizes the concept of features and standardizes the identification (naming) of features.
+Features allow expression of contract capabilities that preserve existing interfaces. This proposal standardizes features related to the ENS protocol.
 
 ## Specification
 
