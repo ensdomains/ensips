@@ -1,5 +1,5 @@
 ---
-description: EIP-7996 features for ENS.
+description: EIP-7996 contract features for ENS.
 contributors:
   - raffy.eth
 ensip:
@@ -7,11 +7,11 @@ ensip:
   status: draft
 ---
 
-# ENSIP-X: ENS Features
+# ENSIP-X: ENS Contract Features
 
 ## Abstract
 
-This ENSIP standardizes [ERC-7996](https://eips.ethereum.org/EIPS/eip-x) features relevant to ENS, enabling new optimizations while preserving compatibility with existing deployments.
+This ENSIP standardizes [ERC-7996](https://eips.ethereum.org/EIPS/eip-x) contract features relevant to ENS, enabling new optimizations while preserving compatibility with existing deployments.
 
 ## Motivation
 
@@ -25,7 +25,7 @@ Contract features are defined in EIP-7996.
 
 ### Resolver with Features
 
-Any resolver with features is considered *modern* and adheres to the following criteria:
+Any resolver that supports features must adhere to the following criteria:
 
 * If the resolver utilizes [EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) (CCIP-Read), it must support [recursive calls](https://eips.ethereum.org/EIPS/eip-3668#recursive-calls-in-ccip-aware-contracts).
 * The resolver must be compiled with [EIP-140](https://eips.ethereum.org/EIPS/eip-140) support.
