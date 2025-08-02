@@ -46,7 +46,7 @@ Callers unaware of features or any specific feature experience no change in beha
 
 ## Security Considerations
 
-As with ERC-165, declaring support for a feature does not guarantee that the contract implements it.
+As stated in ERC-7996, declaring support for a feature does not guarantee that the contract implements it.
 
 ## Copyright
 
