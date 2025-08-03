@@ -27,7 +27,7 @@ Contract features are defined in EIP-7996.
 
 Any resolver that supports features must adhere to the following criteria:
 
-* If the resolver utilizes [EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) (CCIP-Read), it must support [recursive calls](https://eips.ethereum.org/EIPS/eip-3668#recursive-calls-in-ccip-aware-contracts).
+* If the resolver utilizes [EIP-3668](https://eips.ethereum.org/EIPS/eip-3668) (CCIP-Read), it must support [recursive calls](https://eips.ethereum.org/EIPS/eip-3668#recursive-calls-in-ccip-aware-contracts) and its gateway must support [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS).
 * The resolver must be compiled with [EIP-140](https://eips.ethereum.org/EIPS/eip-140) support.
 
 Therefore, when resolution calldata is not a `multicall`, the resolver may be invoked directly without [batch gateway](./21) infrastructure.
