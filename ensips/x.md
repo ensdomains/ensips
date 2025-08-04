@@ -132,6 +132,32 @@ graph TD
 
 ENS v2 contract does not restrict from subregistry to point to one of its ancestor in the hierarchy causing circular structure. When indexing, it should stop indexing if a circular dependency is detected.
 
+#### Indexer Implementation Notes
+
+To prevent circular dependencies and redundant indexing:
+
+1. **Track Visited Registries**: Maintain a set of visited registry addresses when traversing the hierarchy to detect cycles
+2. **Skip Redundant Paths**: When a registry is reached through multiple parent registries (alias feature), index it only once
+3. **Canonical Path Selection**: For aliased names, indexers should determine a canonical path (e.g., shortest path or first discovered path) to avoid duplicate entries
+4. **Cycle Detection**: If a registry's subregistry points to any of its ancestors, stop traversal at that point to prevent infinite loops
+
+Example indexing logic:
+```
+function indexRegistry(registry, visitedSet, path) {
+    if (visitedSet.has(registry)) {
+        // Circular dependency detected, stop indexing
+        return;
+    }
+    visitedSet.add(registry);
+    
+    // Index current registry events
+    // Then recursively index subregistries
+    for (subregistry of registry.subregistries) {
+        indexRegistry(subregistry, visitedSet, path + label);
+    }
+}
+```
+
 ### Event Usage Patterns
 
 #### ENS v2 Hierarchical Name Construction
@@ -154,6 +180,75 @@ For names pointing to L2 chains:
 3. Clients query the specified `graphqlUrl` for L2 name data
 4. L2 registries may use either hierarchical or simplified models
 5. When using simplified models, then specify node by namehashing the full name.
+
+### Simplified Registry-Resolver Model
+
+#### Overview
+
+For simpler L2 implementations that don't require the full hierarchical registry architecture, contracts can combine registry and resolver functionality into a single contract. This approach is suitable for:
+- Independent L2 subname services  
+- Flat namespace implementations
+- Lightweight name service deployments
+
+#### Implementation Pattern
+
+The simplified model:
+1. Combines registry ownership tracking with resolver record storage
+2. Emits both registry events (NewSubname, Transfer) and resolver events (AddressChanged, TextChanged, etc.)
+3. Uses namehash for node identification instead of hierarchical traversal
+4. Maintains compatibility with the standard events defined in this ENSIP
+
+#### Event Emission
+
+In the simplified model:
+- `NewSubname` events are emitted when creating subnodes
+- `Transfer` events track ownership changes
+- Resolver events use the full namehash as the node parameter
+- No `SubregistryUpdate` or `ResolverUpdate` events are needed since registry and resolver are combined
+
+#### Example Implementation
+
+```solidity
+contract SimplifiedL2Registry is ERC721, AddrResolver {
+    mapping(bytes32 => bytes) public names;
+    
+    function createSubnode(
+        bytes32 parentNode,
+        string memory label
+    ) external returns (bytes32 node) {
+        bytes32 labelhash = keccak256(bytes(label));
+        uint256 tokenId = uint256(labelhash);
+        
+        // Registry functionality: mint the NFT
+        _mint(msg.sender, tokenId);
+        
+        // Calculate and store the full node
+        node = keccak256(abi.encodePacked(parentNode, labelhash));
+        names[node] = abi.encodePacked(names[parentNode], uint8(bytes(label).length), label);
+        
+        // Emit registry event
+        emit NewSubname(labelhash, label);
+        emit Transfer(address(0), msg.sender, tokenId);
+    }
+    
+    function setAddr(bytes32 node, address addr) external {
+        require(isAuthorised(node), "Not authorized");
+        
+        // Resolver functionality: store the address
+        addresses[node] = addr;
+        
+        // Emit resolver event with full namehash
+        emit AddrChanged(node, addr);
+    }
+}
+```
+
+#### Usage Pattern
+
+1. Contract creates a subname and emits `NewSubname(labelhash, label)`
+2. Same transaction can emit resolver events like `AddressChanged(namehash, coinType, address)`
+3. Ownership transfers emit standard ERC721/ERC1155 Transfer events
+4. All resolver updates use the full namehash for the node parameter
 
 ### GraphQL Schema
 
