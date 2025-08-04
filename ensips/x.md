@@ -1,5 +1,5 @@
 ---
-description: EIP-7996 contract features for ENS.
+description: ERC-7996 contract features for ENS.
 contributors:
   - raffy.eth
 ensip:
@@ -11,7 +11,7 @@ ensip:
 
 ## Abstract
 
-This ENSIP standardizes [ERC-7996](https://eips.ethereum.org/EIPS/eip-x) contract features relevant to ENS, enabling new optimizations while preserving compatibility with existing deployments.
+This ENSIP standardizes [ERC-7996](https://eips.ethereum.org/EIPS/eip-7996) contract features relevant to ENS, enabling new optimizations while preserving compatibility with existing deployments.
 
 ## Motivation
 
