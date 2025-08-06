@@ -18,7 +18,7 @@ This ENSIP standardizes [IUniversalResolver](#specification) (UR), an universal 
 
 The process of resolving ENS names requires multiple onchain calls and in-depth knowledge of the [latest standards](/).
 
-Resolution has become more complex over time, especially with the introduction of [wildcard resolution](./10.md) and [multichain primary names](./19).  ENSv2 will also introduce a new registry design and many other improvements.
+Resolution has become more complex over time, especially with the introduction of [wildcard resolution](./10) and [multichain primary names](./19).  ENSv2 will also introduce a new registry design and many other improvements.
 
 Maintaining these changes across multiple client frameworks demands significant development effort.  The growth and evolution of the ENS protocol should not be constrained by the pace of client deployments or hindered by outdated libraries.
 
@@ -192,7 +192,9 @@ const error = decodeErrorResult({ data: result[2] }); // { errorName: "Unsupport
 
 ### reverse
 
-This function performs ENS primary name resolution according to [ENSIP-19](./19.md).  Provided a [byte-encoded](./9) `lookupAddress` and desired `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  UR supports CCIP-Read during the forward and reverse phases.  
+This function performs ENS primary name resolution according to [ENSIP-19](./19).  Provided a [byte-encoded](./9) `lookupAddress` and desired `coinType`, it returns the verified primary `name` and the addresses of forward `resolver` and `reverseResolver`.  UR supports CCIP-Read during the forward and reverse phases.
+
+If the primary `name` is [unnormalized](./15), eg. `normalize("Nick.eth") != "nick.eth"`, then `name` and `resolver` are invalid.
 
 * If [reverse resolution](./19#reverse-resolution) of the reverse name was not successful, reverts a [`resolve()` error](resolve-resolution-errors).
 * If the resolved primary name was null, returns `("", address(0), <reverseResolver>)`.
