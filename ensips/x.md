@@ -26,7 +26,7 @@ UR offers a standard entrypoint for client frameworks to perform ENS resolution.
 
 ## Specification
 
-UR has the following Solidity [interface](https://github.com/ensdomains/ens-contracts/blob/staging/contracts/universalResolver/IUniversalResolver.sol):
+UR has the following Solidity [interface](https://github.com/ensdomains/ens-contracts/blob/20e34971fd55f9e3b3cf4a5825d52e1504d36493/contracts/universalResolver/IUniversalResolver.sol):
 
 ```solidity
 /// @dev Interface selector: `0xcd191b34`
