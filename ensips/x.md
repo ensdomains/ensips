@@ -130,7 +130,7 @@ graph TD
     class resolver_example,resolver_foo resolver;
 ```
 
-ENS v2 contract does not restrict from subregistry to point to one of its ancestor in the hierarchy causing circular structure. When indexing, it should stop indexing if a circular dependency is detected.
+The ENS v2 contract does not restrict a subregistry from pointing to one of its ancestors in the hierarchy. This causes a circular structure. Indexers should stop indexing if a circular dependency is detected.
 
 #### Indexer Implementation Notes
 
