@@ -130,14 +130,14 @@ graph TD
     class resolver_example,resolver_foo resolver;
 ```
 
-ENS v2 contract does not restrict from subregistry to point to one of its ancestor in the hierarchy causing circular structure. When indexing, it should stop indexing if a circular dependency is detected.
+The ENS v2 contract does not restrict a subregistry from pointing to one of its ancestors in the hierarchy. This causes a circular structure. Indexers should stop indexing if a circular dependency is detected.
 
 #### Indexer Implementation Notes
 
 To prevent circular dependencies and redundant indexing:
 
 1. **Track Visited Registries**: Maintain a set of visited registry addresses when traversing the hierarchy to detect cycles
-2. **Skip Redundant Paths**: When a registry is reached through multiple parent registries (alias feature), index it only once
+2. **Skip Redundant Paths**: When a registry is reached through multiple parent registries via aliasing, index it only once
 3. **Canonical Path Selection**: For aliased names, indexers should determine a canonical path (e.g., shortest path or first discovered path) to avoid duplicate entries
 4. **Cycle Detection**: If a registry's subregistry points to any of its ancestors, stop traversal at that point to prevent infinite loops
 
