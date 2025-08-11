@@ -100,9 +100,9 @@ event ContenthashChanged(
 );
 ```
 
-To cater for the alias feature enabled by the hierarchical registry model, node can be set as 0x, representing that the record is for any names that uses the resolver. 
+As a by-product of hierarchical registry system, multiple registries can point to the same sub registry.  For example both ".xyz" and ".eth" can point to "example" as their subnames, so that both "example.eth" and "example.xyz" point to the same registry and sharing the same resolver data.
 
-The following diagram shows the relationship of each registry and its dedicated resolver.
+The following diagram shows the relationship of each registry and its dedicated resolver linked by multiple parent node to make the aliasing effect.
 
 ```mermaid
 graph TD
@@ -138,7 +138,7 @@ To prevent circular dependencies and redundant indexing:
 
 1. **Track Visited Registries**: Maintain a set of visited registry addresses when traversing the hierarchy to detect cycles
 2. **Skip Redundant Paths**: When a registry is reached through multiple parent registries via aliasing, index it only once
-3. **Canonical Path Selection**: For aliased names, indexers should determine a canonical path (e.g., shortest path or first discovered path) to avoid duplicate entries
+3. **Canonical Path Selection**: For aliased names, indexers should determine a canonical path with the shortest path to avoid duplicate entries
 4. **Cycle Detection**: If a registry's subregistry points to any of its ancestors, stop traversal at that point to prevent infinite loops
 
 Example indexing logic:
@@ -169,7 +169,7 @@ To construct full domain names in the hierarchical model:
 3. Query `NewSubname` events at each registry level to get label information
 4. Build the complete name by concatenating labels as you traverse down the hierarchy
 5. Resolve final records using `ResolverUpdate` and resolver-specific events
-6. Resolvers use `node = 0x0000...` to set record 
+6. If resolver's node is set to 0x000, then indexer reconstructs the full node/namehash by traversing each label set on the registry hierarchy.
 
 #### Cross-Chain Name Resolution
 
