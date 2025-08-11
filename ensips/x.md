@@ -54,16 +54,17 @@ event Transfer(
 
 // Emitted when subregistry is updated
 event SubregistryUpdate(
-    address indexed registry,
     uint256 indexed id,
-    address subregistry
+    address subregistry,
+    uint64 expiry,
+    uint32 data
 );
 
 // Emitted when resolver is updated
 event ResolverUpdate(
-    address indexed registry,
     uint256 indexed id,
-    address resolver
+    address resolver,
+    uint32 data
 );
 ```
 
