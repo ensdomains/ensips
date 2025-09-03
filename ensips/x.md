@@ -249,7 +249,7 @@ contract SimplifiedL2Registry is ERC721, AddrResolver {
 1. Contract creates a subname and emits `NewSubname(labelhash, label)`
 2. Same transaction can emit resolver events like `AddressChanged(namehash, coinType, address)`
 3. Ownership transfers emit standard ERC721/ERC1155 Transfer events
-4. All resolver updates use the full namehash for the node parameter
+4. All resolver updates use the namehash of the full name for the node parameter
 
 ### GraphQL Schema
 
