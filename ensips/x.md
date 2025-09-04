@@ -1,0 +1,64 @@
+---
+description: A standard for storing EOA/Fallback addresses in ENS.
+contributors:
+  - luc.eth
+ensip:
+  created: '2024-10-01'
+  status: draft
+---
+
+# ENSIP-X: EOA/Fallback Chain Id
+
+## Abstract
+
+This ENSIP specifies a way to set an EOA/Fallback address for a name. This allows for users to set one address to be used for all chains, or as a fallback for when a chain-specific address record is not set.
+
+## Motivation
+
+With the rising interest and research around account abstraction, in addition to the maturation of the multi-chain ecosystem, there is a need for users to be able to set a single address to be used across all chains.
+
+For a simple Externally Owned Account (EOA) user, this means setting their address once, and never having to worry about it again.
+For more advanced users, this means that chain-specific records can be used for smart-contract wallets, and an EOA can be specified as fallback.
+
+This ENSIP introduces opt-in functionality that can be leveraged by both EOA and smart-contract wallets, and does not impact the existing functionality of ENS.
+
+## Specification
+
+This ENSIP aims to extend the functionality introduced in [ENSIP-9](./9) and [ENSIP-11](./11) and simply relies on the same functionality.
+
+### CoinType for EOA
+
+The standard CoinType for this proposed chain id is `2147483648`.
+
+This can be derived from `0x80000000 | 0` or `evmChainIdToCoinType(0)` , as per [ENSIP-11](./11).
+
+### Resolution Order
+
+The resolution process remains as normal however now an extra lookup can be implemented client-side (or via proposed public resolver implementation).
+
+The initial lookup is done for the chainId the user is currently on / interested in.
+For example for Optimism (EVM Chain Id 10), the initial lookup would be for `coinType = 0x80000000 | 10`.
+
+If the lookup does not result in an address, a second lookup is done for the EOA Chain Id.
+
+### Proposed Implementation
+
+There are multiple routes we considered around implementing this; client-side, or via a public resolver implementation.
+
+For the smoothest implementation, leveraging the public resolver to handle this functionality for us seems ideal.
+This would mean no additional code is needed, and we can use the regular one-liners you are used to.
+
+### Public Resolver
+
+The public resolver could choose to implement a fallback mechanism for EOA addresses.
+Such that when a `coinType` lookup occurs (for an EVM-compatible chain), and the resolver does not find an address record, it will return the EOA address.
+
+This allows for additional flexibility allowing users to set a fallback address for all evm-compatible chains.
+
+## Backwards Compatibility
+
+This proposal is backwards compatible with the existing `addr(node, coinType)` functionality, and simply adds additional fallback behavior.
+
+## Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
