@@ -41,7 +41,7 @@ A new `pgp` text record that extends the set of Profile Keys described in ENSIP-
 
 ### Storing the Formatted Key Fingerprint
 
-In theory, an OpenPGP key fingerprint can be encoded in 20 bytes. However, in order for `pgp` to be a text record, this proposal opted for using the standard key fingerprint format. Additionally, this proposal opted to not strip out the spaces (and leave formatting up to clients) as the additional 10 bytes to not significant storage costs on-chain (10 zero to non-zero calldata bytes, and no additional storage slots needed).
+In theory, an OpenPGP key fingerprint can be encoded in 20 bytes. However, in order for `pgp` to be a text record, this proposal opted for using the standard key fingerprint format. Additionally, this proposal opted not to strip out the spaces (and leave formatting up to clients) as the additional 10 bytes would not incur significant storage costs on-chain (10 zero to non-zero calldata bytes, and no additional storage slots needed).
 
 ### Storing the Fingerprint Instead of the Public Key
 
