@@ -49,8 +49,8 @@ event TransferBatch(
 event Transfer(
   address indexed from,
   address indexed to,
-  uint256 tokenId,
-)
+  uint256 tokenId
+);
 
 // Emitted when subregistry is updated
 event SubregistryUpdate(
