@@ -43,7 +43,7 @@ event TransferBatch(
   address indexed to,
   uint256[] ids,
   uint256[] values
-)
+);
 
 // Standard ERC721 transfer event for name ownership changes
 event Transfer(
