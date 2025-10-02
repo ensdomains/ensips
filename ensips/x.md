@@ -1,5 +1,5 @@
 ---
-description: L2 Registry and Resolver Events for Cross-Chain Name Services
+description: Standardised Events for Cross-Chain Name Services
 contributors:
   - matoken.eth
 ensip:
@@ -7,11 +7,11 @@ ensip:
   created: 2025-08-04
 ---
 
-# ENSIP-X: L2 Registry and Resolver Events for Cross-Chain Name Services
+# ENSIP-X: Standardised Events for Cross-Chain Name Services
 
 ## Abstract
 
-This ENSIP specifies standardized registry and resolver events for L2 and cross-chain name services that build upon ENSIP-16's metadata discovery mechanism. It defines events that support ENS v2's hierarchical registry model on NameChain and provides a framework for independent L2 subname issuing services through enhanced event-based indexing.
+This ENSIP specifies standardized registry and resolver events for cross-chain name services that build upon ENSIP-16's metadata discovery mechanism. It defines events that support ENS v2's hierarchical registry model on NameChain and provides a framework for independent subname issuing services through enhanced event-based indexing.
 
 ## Motivation
 
