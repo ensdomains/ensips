@@ -19,6 +19,13 @@ As ENS expands to L2 chains and adopts a hierarchical registry model, there is a
 
 ## Specification
 
+### Terminology
+
+- id/tokenId = The unique identifier for a name NFT, derived from the labelhash and version id that increments every time the permission of the name changes effectively invalidating any permissions or approvals tied to the old token ID. 
+- registry = A contract that manages name ownership and hierarchical relationships for a set of names. The root registry manages top-level domains, while subregistries manage names under a specific parent
+- subregistry = A registry contract that manages subnames under a parent name. Linked from a parent registry via SubregistryUpdate events
+- timestamp (eg: expiry) = Unless specified otherwise, it will be seconds since Unix epoch time
+
 ### Events
 
 #### Registry Events
