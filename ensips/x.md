@@ -28,6 +28,7 @@ As ENS expands to L2 chains and adopts a hierarchical registry model, there is a
 event NewSubname(bytes32 indexed labelhash, string label);
 
 // Standard ERC1155 transfer event for name ownership changes
+// Note: value is always 1
 event TransferSingle(
     address indexed operator,
     address indexed from,
