@@ -231,14 +231,17 @@ contract SimplifiedL2Registry is ERC721, AddrResolver {
         emit Transfer(address(0), msg.sender, tokenId);
     }
     
-    function setAddr(bytes32 node, uint256 coinType, address addr) external {
+    function setAddr(bytes32 node, uint256 coinType, bytes memory addressBytes) external {
         require(isAuthorised(node), "Not authorized");
         
         // Resolver functionality: store the address
-        addresses[node][coinType] = addr;
+        addresses[node][coinType] = addressBytes;
         
         // Emit resolver event with full namehash
-        emit AddrChanged(node, coinType, addr);
+        emit AddrChanged(node, coinType, addressBytes);
+        if (coinType == 60) {
+          emit AddrChanged(node, address(bytes20(addressBytes)));
+        }
     }
 }
 ```
