@@ -77,7 +77,7 @@ To keep compatibility with ENS v1, resolver events maintain the same event inter
 
 ```solidity
 // Emitted when address record changes in dedicated resolver
-// Note: node is always 0x0000... for alias support
+// Note: node is always 0x0000...
 event AddressChanged(
     bytes32 indexed node,
     uint256 coinType,
@@ -104,7 +104,7 @@ event ContenthashChanged(
 
 As a by-product of hierarchical registry system, multiple registries can point to the same sub registry.  For example both ".xyz" and ".eth" can point to "example" as their subnames, so that both "example.eth" and "example.xyz" point to the same registry and sharing the same resolver data.
 
-The following diagram shows the relationship of each registry and its dedicated resolver linked by multiple parent node to make the aliasing effect.
+The following diagram shows the relationship of each registry and its dedicated resolver linked by multiple parent node.
 
 ```mermaid
 graph TD
@@ -112,7 +112,7 @@ graph TD
     eth["🏛️ ETH Registry<br/>Contract: 0xabc...123<br/>Manages: .eth TLD"]
     xyz["🏛️ XYZ Registry<br/>Contract: 0xdef...456<br/>Manages: .xyz TLD"]
     foo["🏛️ FOO Registry<br/>Contract: 0x789...abc<br/>Manages: foo subdomain<br/>Parent: eth"]
-    example["🏛️ EXAMPLE Registry<br/>Contract: 0x456...def<br/>Manages: example subdomain<br/>Parents: eth, xyz (ALIAS)"]
+    example["🏛️ EXAMPLE Registry<br/>Contract: 0x456...def<br/>Manages: example subdomain<br/>Parents: eth, xyz"]
     
     %% Registry relationships
     eth -->|SubregistryUpdate| foo
@@ -120,8 +120,8 @@ graph TD
     xyz -->|SubregistryUpdate| example
 
     %% Resolver relationships
-    example -.->|ResolverUpdate| resolver_example["🔧 Dedicated Resolver<br/>Contract: 0x111...222<br/>node: 0x000...000 (alias mode)<br/>📍 address: 0xuser...1<br/>📝 text: description='shared resolver'"]
-    foo -.->|ResolverUpdate| resolver_foo["🔧 Dedicated Resolver<br/>Contract: 0x333...444<br/>node: 0x000...000 (alias mode)<br/>📍 address: 0xuser...2<br/>📝 text: purpose='foo specific'"]
+    example -.->|ResolverUpdate| resolver_example["🔧 Dedicated Resolver<br/>Contract: 0x111...222<br/>node: 0x000...000<br/>📍 address: 0xuser...1<br/>📝 text: description='shared resolver'"]
+    foo -.->|ResolverUpdate| resolver_foo["🔧 Dedicated Resolver<br/>Contract: 0x333...444<br/>node: 0x000...000<br/>📍 address: 0xuser...2<br/>📝 text: purpose='foo specific'"]
 
     %% Styling
     classDef registry fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000,text-wrap:nowrap;
@@ -139,8 +139,8 @@ The ENS v2 contract does not restrict a subregistry from pointing to one of its 
 To prevent circular dependencies and redundant indexing:
 
 1. **Track Visited Registries**: Maintain a set of visited registry addresses when traversing the hierarchy to detect cycles
-2. **Skip Redundant Paths**: When a registry is reached through multiple parent registries via aliasing, index it only once
-3. **Canonical Path Selection**: For aliased names, indexers should determine a canonical path with the shortest path to avoid duplicate entries
+2. **Skip Redundant Paths**: When a registry is reached through multiple parent registries, index it only once
+3. **Canonical Path Selection**: Indexers should determine a canonical path with the shortest path to avoid duplicate entries
 4. **Cycle Detection**: If a registry's subregistry points to any of its ancestors, stop traversal at that point to prevent infinite loops
 
 Example indexing logic:
