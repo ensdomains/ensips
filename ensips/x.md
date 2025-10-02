@@ -11,7 +11,7 @@ ensip:
 
 ## Abstract
 
-This ENSIP specifies standardized registry and resolver events for cross-chain name services that build upon ENSIP-16's metadata discovery mechanism. It defines events that support ENS v2's hierarchical registry model on NameChain and provides a framework for independent subname issuing services through enhanced event-based indexing.
+This ENSIP specifies standardized registry and resolver events for cross-chain name services that build upon ENSIP-16's metadata discovery mechanism. It defines events that support ENS v2's hierarchical registry model on Namechain and provides a framework for independent subname issuing services through enhanced event-based indexing.
 
 ## Motivation
 
@@ -130,11 +130,11 @@ graph TD
     class resolver_example,resolver_foo resolver;
 ```
 
-The ENS v2 contract does not restrict a subregistry from pointing to one of its ancestors in the hierarchy. This causes a circular structure. Indexers should stop indexing if a circular dependency is detected.
+The ENS v2 contract does not restrict a subregistry from pointing to one of its ancestors in the hierarchy. This creates a circular structure. Indexers MUST detect circular dependencies by tracking visited registries and halt traversal when a registry is encountered a second time in the same path.
 
 #### Indexer Implementation Notes
 
-To prevent circular dependencies and redundant indexing:
+To prevent circular dependencies:
 
 1. **Track Visited Registries**: Maintain a set of visited registry addresses when traversing the hierarchy to detect cycles
 2. **Skip Redundant Paths**: When a registry is reached through multiple parent registries, index it only once
