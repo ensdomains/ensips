@@ -171,24 +171,15 @@ To construct full domain names in the hierarchical model:
 5. Resolve final records using `ResolverUpdate` and resolver-specific events
 6. If resolver's node is set to 0x000, then indexer reconstructs the full node/namehash by traversing each label set on the registry hierarchy.
 
-#### Cross-Chain Name Resolution
-
-For names pointing to L2 chains:
-
-1. Name must first be ejected from L2 to L1 via `TransferSingle`, `TransferBatch`, `Transfer` event
-2. L1 resolver emits `MetadataChanged` event (defined in ENSIP-16) with L2 chain information
-3. Clients query the specified `graphqlUrl` for L2 name data
-4. L2 registries may use either hierarchical or simplified models
-5. When using simplified models, then specify node by namehashing the full name.
-
 ### Simplified Registry-Resolver Model
 
 #### Overview
 
-For simpler L2 implementations that don't require the full hierarchical registry architecture, contracts can combine registry and resolver functionality into a single contract. This approach is suitable for:
-- Independent L2 subname services  
-- Flat namespace implementations
-- Lightweight name service deployments
+For simpler implementations that don't require the full hierarchical registry architecture, contracts can combine registry and resolver functionality into a single contract. This approach is suitable for:
+
+- Independent subname services   (not using Namechain contracts)
+- Flat namespace implementations (no subname of subnames)
+- Simple name service deployments without deploying the whole ENS v2 contracts into a new chain
 
 #### Implementation Pattern
 
@@ -252,6 +243,16 @@ contract SimplifiedL2Registry is ERC721, AddrResolver {
 2. Same transaction can emit resolver events like `AddressChanged(namehash, coinType, address)`
 3. Ownership transfers emit standard ERC721/ERC1155 Transfer events
 4. All resolver updates use the namehash of the full name for the node parameter
+
+### Cross-Chain Name Resolution
+
+When registereing new names, the names will be minted on Namechain by default. If the name owners wish to move the storage of the name to L1 or other chains, the following steps are required to transfer the name from one chain to another and reflect the information through `MetadataChanged` event.
+
+1. Name is bridged from Namechain to L1 by burning the name NFT on Namechain (transferring to address(0)) and minting the corresponding NFT on L1, which emits `TransferSingle`, `TransferBatch`, or `Transfer` events
+2. L1 resolver emits `MetadataChanged` event (defined in ENSIP-16) with other chain information
+3. Clients query the specified `graphqlUrl` for the other chain data
+4. The registries on other chain may use either hierarchical or simplified models (defined above)
+5. When using simplified models, specify node by namehashing the full name
 
 ### GraphQL Schema
 
