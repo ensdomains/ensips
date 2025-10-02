@@ -166,7 +166,7 @@ To construct full domain names in the hierarchical model:
 
 1. Start from the root registry and traverse down through subregistries
 2. Use `SubregistryUpdate` events to find child registries for each label
-3. Query `NewSubname` events at each registry level to get label information
+3. Use `NewSubname` events at each registry level to get label information
 4. Build the complete name by concatenating labels as you traverse down the hierarchy
 5. Resolve final records using `ResolverUpdate` and resolver-specific events
 6. If resolver's node is set to 0x000, then indexer reconstructs the full node/namehash by traversing each label set on the registry hierarchy.
