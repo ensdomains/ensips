@@ -73,7 +73,7 @@ NOTE: The registry contract supports either ERC721 (Transfer) or ERC1155 (Transf
 
 #### Resolver Events
 
-To keep compatibility with ENS v1, resolver events maintain the same event interface as ENS v1 with one notable difference.
+To keep compatibility with ENS v1, resolver events maintain the same event interface as ENS v1 with node field which is 0x000 for v2 system. In ENS v1, the PublicResolver is a monolithic contract shared across multiple names, requiring the node parameter to identify which name the event applies to. In contrast, ENS v2 uses DedicatedResolver, where each name has its own resolver contract. Since the resolver is dedicated to a single name, the node information can be determined by querying the registry to find which name points to that resolver address, eliminating the need for a non-zero node parameter in events.
 
 ```solidity
 // Emitted when address record changes in dedicated resolver
