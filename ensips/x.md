@@ -51,14 +51,14 @@ event TransferBatch(
   address indexed to,
   uint256[] ids,
   uint256[] values
-)
+);
 
 // Standard ERC721 transfer event for name ownership changes
 event Transfer(
   address indexed from,
   address indexed to,
-  uint256 tokenId,
-)
+  uint256 tokenId
+);
 
 // Emitted when subregistry is updated
 event SubregistryUpdate(
@@ -149,7 +149,7 @@ To prevent circular dependencies:
 4. **Cycle Detection**: If a registry's subregistry points to any of its ancestors, stop traversal at that point to prevent infinite loops
 
 Example indexing logic:
-```
+```js
 function indexRegistry(registry, visitedSet, path) {
     if (visitedSet.has(registry)) {
         // Circular dependency detected, stop indexing
