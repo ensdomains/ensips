@@ -1,10 +1,15 @@
 ---
 title: Agent‑Context Text Record
-author: Prem Makeig (premm.eth) <premm@unruggable.com>, Ghadi Mhawej (justghadi.eth) <ghadi@justalab.co>
-discussions-to: <URL>
-status: Idea
-created: 2025-05-17
+description: A standardized text record for agent context, registry discovery, and protocol support
+contributors: 
+    - premm.eth
+    - justghadi.eth
+ensip:
+  created: "2025-05-17"
+  status: draft
 ---
+
+# ENSIP-XX: Agent-Context Text Record
 
 ## Abstract
 
