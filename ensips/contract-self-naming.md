@@ -16,7 +16,7 @@ This ENSIP extends ENSIP-19 to enable contracts to declare their own reverse nam
 
 ## Motivation
 
-Current reverse name registration requires the contract owner or deployer to perform a separate transaction to set the reverse name after deployment. This ENSIP enables contracts to declare their reverse ENS name during deployment using ERC-8049 metadata with predictable Diamond Storage locations. Any account can then trustlessly verify the declaration and permissionlessly register the contract's reverse name in the registrar, removing the burden from contract deployers.
+Current reverse name registration requires the contract owner (when there is one) to perform a separate transaction to set the reverse name after deployment. Alternatively, the contract can make a custom external call in the constructor. This ENSIP enables contracts to declare their reverse ENS name during deployment using ERC-8049 metadata with predictable Diamond Storage locations. Any account can then trustlessly verify the declaration and permissionlessly register the contract's reverse name in the registrar, removing the burden from contract deployers.
 
 ## Specification
 
