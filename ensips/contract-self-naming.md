@@ -8,7 +8,7 @@ ensip:
   status: draft
 ---
 
-# ENSIP-XX: Contract Self-Naming
+# ENSIP-X: Contract Self-Naming
 
 ## Abstract
 
