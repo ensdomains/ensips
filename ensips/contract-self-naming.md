@@ -1,5 +1,5 @@
 ---
-title: Contract Self-Naming via ERC-8049
+title: Contract Self-Naming
 description: A standard for contracts to declare their own reverse names using ERC-8049 metadata
 contributors:
   - premm.eth
@@ -8,7 +8,7 @@ ensip:
   status: draft
 ---
 
-# ENSIP-XX: Contract Self-Naming via ERC-8049
+# ENSIP-XX: Contract Self-Naming
 
 ## Abstract
 
