@@ -53,7 +53,7 @@ storageSlot = keccak256(abi.encode(0x09ded414ae6c0ce389342caf0619071d5be1687a6f7
             = 0x94270372dde1798328336feac81168e7d959b12f3d2497d26f9e1b935b793b3b
 ```
 
-**Value Format**: The value MUST be ABI-encoded as `bytes` containing the UTF-8 string representation of the ENS name (e.g., `bytes("mycontract.eth")`).
+**Value Format**: The value MUST be stored as `bytes` containing the UTF-8 string representation of the ENS name (e.g., `bytes("mycontract.eth")`).
 
 #### Setting the Reverse Name
 
@@ -75,7 +75,7 @@ contract MyContract is ERC8049ContractMetadata {
 
 ## Rationale
 
-Using ERC-8049 with its Optional Diamond Storage extension provides a standardized, low-friction method for contracts to declare their ENS names through predictable storage locations that enable trustless verification. This approach eliminates deployment friction by allowing contracts to self-declare their identity during initialization without requiring separate registration transactions. The permissionless registration model allows any account to complete the registration process, making it ideal for DAO-controlled or ownerless contracts while maintaining security through cryptographic verification. This standardization also ensures composability with other ERC-8049 metadata and enables efficient single-slot verification.
+Using ERC-8049 with its Optional Diamond Storage extension provides a standardized, low-friction method for contracts to declare their ENS names through predictable storage locations that enable trustless verification. This approach eliminates deployment friction by allowing contracts to self-declare their identity during initialization without requiring separate registration transactions. The permissionless registration model allows any account to complete the registration process, making it ideal for admin-free contracts while maintaining security through cryptographic verification. This standardization also ensures composability with other ERC-8049 metadata and enables efficient single-slot verification for names under 32 characters.
 
 ## Security Considerations
 
