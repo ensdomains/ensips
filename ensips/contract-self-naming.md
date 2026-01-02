@@ -62,8 +62,8 @@ contract MyContract {
 
     constructor() {
         // Declare the contract's reverse name using ERC-8042 Diamond Storage
-        // Replace with ENS namehash("mycontract.eth")
-        getStorage().reverseNameHash = bytes32(0);
+        // `namehash(...)` refers to the ENS Namehash algorithm.
+        getStorage().reverseNameHash = namehash("mycontract.eth");
     }
 }
 ```
