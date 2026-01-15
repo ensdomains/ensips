@@ -9,7 +9,7 @@ ensip:
   status: draft
 ---
 
-# ENSIP-XX: ERC-7930 Address Resolution
+# ENSIP-X: ERC-7930 Address Resolution
 
 ## Abstract
 
