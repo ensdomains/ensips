@@ -42,6 +42,7 @@ Resolvers implementing these profiles MUST implement the ENSIP-10 ExtendedResolv
 ### Terminology
 
 - **chain-identifier**: The `chain-identifier` parameter is an ERC-7930 Interoperable Address used to identify the target chain. For the purposes of this ENSIP, the `chain-identifier` MUST encode the chain information and MUST have a zero-length target address (including the zero-length byte and no address bytes).
+- **interoperable-address**: A full ERC-7930 Interoperable Address, including both the chain information and the target address bytes.
 - **Target address bytes**: The raw address bytes for the requested chain, with no length prefix.
 
 ### Profile: `iAddress(chain-identifier) -> bytes`
@@ -62,20 +63,20 @@ When invoked via ENSIP-10 `resolve(name, data)` where `data` encodes `iAddress(c
 
 The returned bytes are the **ERC-7930 Address bytes** for the target chain (no length prefix). Clients can construct a full ERC-7930 Interoperable Address by taking `chain-identifier` (which contains a zero-length address) and replacing the zero-length with the correct length of the returned bytes, then appending the returned bytes.
 
-### Profile: `iReverse(chain-identifier) -> string`
+### Profile: `iReverse(interoperable-address) -> string`
 
 This profile returns a human-readable name associated with the chain-specific target address for the ENS name being resolved.
 
 ABI signature:
 
 ```solidity
-function iReverse(bytes calldata chainIdentifier) external view returns (string memory);
+function iReverse(bytes calldata interoperableAddress) external view returns (string memory);
 ```
 
-When invoked via ENSIP-10 `resolve(name, data)` where `data` encodes `iReverse(chain-identifier)`:
+When invoked via ENSIP-10 `resolve(name, data)` where `data` encodes `iReverse(interoperable-address)`:
 
 - The resolver MAY compute `node` from `name` as described above.
-- The resolver MUST return a name (as a UTF-8 string) that is associated with the chain-specific target address for the given `name` and `chain-identifier`.
+- The resolver MUST return a name (as a UTF-8 string) that is associated with the given `name` and `interoperable-address`.
 - If no name is set, the resolver MUST return the empty string.
 
 This profile is intended to support chain-specific "reverse naming" patterns. The mechanism for establishing and verifying reverse associations is out of scope for this ENSIP.
@@ -124,7 +125,7 @@ resolver.resolve(dnsencode("alice.eth"), abi.encodeWithSignature("iAddress(bytes
 - Resolve a chain-specific reverse name for `alice.eth`:
 
 ```text
-resolver.resolve(dnsencode("alice.eth"), abi.encodeWithSignature("iReverse(bytes)", chainIdentifier))
+resolver.resolve(dnsencode("alice.eth"), abi.encodeWithSignature("iReverse(bytes)", interoperableAddress))
 ```
 
 - Resolve arbitrary data for `alice.eth`:
