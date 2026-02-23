@@ -1,6 +1,6 @@
 ---
-title: Node Classification Metadata
-description: Optional metadata to describe the organizational role of an ENS node
+title: Node Classification and Metadata
+description: Additional metadata to describe the organizational role of an ENS node
 contributors: 
     - jkm.eth
     - 1a35e1.eth
@@ -9,11 +9,11 @@ ensip:
   status: draft
 ---
 
-# ENSIP-X: Node Classification Metadata
+# ENSIP-X: Node Classification and Metadata
 
 ## Abstract
 
-This ENSIP proposes a standard method for using text records to declare the role of an ENS name/subname (node). Two types of standardized text records are introduced, which provide for labeling the role of node against a larger organizational structure, and for defining the structure of additional, context-dependent attributes that may be appended to that node.
+This ENSIP proposes a standard method for using text records to declare the role of an ENS name/subname (node). Two types of standardized text records are introduced, which provide for labeling the role of the node against a larger organizational structure, and for defining the structure of additional, context-dependent metadata attributes that may be appended to that node.
 
 ## Motivation
 
@@ -63,16 +63,14 @@ Therefore, `class` designations like `contract` and `wallet` should only be inte
 Nodes can specify a text record with the key name of `schema`, the value of which points to a JSON schema which declares which metadata attributes can be added to the node as text or data records, in addition to the global text records already specified in existing ENSIPs. The value of `schema` MUST start with one of the following prefixes, followed by the appropriate value:
 
 * `ipfs://` - followed by the ipfs URI pointing to the JSON payload
-* `https://` - followed by the http(s) URI pointing to the JSON payload
 * `cbor:` - followed by the schema encoded in CBOR format
+* `https://` - followed by the http(s) URI pointing to the JSON payload
+
+Immutable resources such as `ipfs` and `cbor` SHOULD be used, however `https` is also allowed in case a mutable source is preferred for some reason. Implementors should be aware that schemas provided over `https` can change at any time or become unavailable at some point in the future, and implementations MUST be designed in a way that harm to users is minimized if such a thing were to happen.
 
 ### Schema Payload
 
-If a schema is provided for a node, it specifies which additional metadata attributes are expected to be provided for that node, stored as text or data records. Schemas MUST follow the JSON Schema specification, [version 2020-12](https://json-schema.org/draft/2020-12/json-schema-core), and describe a single-level object in which property names match the text or data record key names. Attribute key names MUST use camel case.
-
-Clients that facilitate storing metadata records SHOULD reject values that fail validation according to the provided schema.
-
-Clients that facilitate retrieving metadata records MAY ignore values that fail validation according to the provided schema.
+If a schema is provided for a node, it specifies which additional metadata attributes are expected to be provided for that node, stored as ENSIP-5 text records or ENSIP-24 data records. Schemas MUST follow the JSON Schema specification, [version 2020-12](https://json-schema.org/draft/2020-12/json-schema-core), and describe a single-level object in which property names match the text or data record key names. Attribute key names MUST use kebab case (i.e. all lowercase with words delimited by hyphens). If additional namespacing is required, attributes MUST use dot notation as described in ENSIP-5.
 
 #### Additional details
 
@@ -80,8 +78,16 @@ Clients that facilitate retrieving metadata records MAY ignore values that fail 
 * The schema's `title` field identifies what entity is described in the data structure. If the schema is intended to be used with a specific `class`, the value of `title` SHOULD be the same as the class it is meant to represent.
 * If a node has a `schema` present but no `class` record set, the value of the schema's `title` SHOULD be used as the class identifier for the node.
 * Schema authors are encouraged to populate the `description` field with an explanation of the organizational role fulfilled by nodes which use this schema, in line with the `class` descriptions listed above.
-* Schemas MAY include definitions for key names which are declared as global in other ENSIPs, however if present, the descriptions of these keys MUST NOT be in direct conflict of their original definition provided by existing ENSIPs.
-* Attributes can include an optional `recordType` ("text" | "data") keyword which indicates if the record is stored as `text` (ENSIP-5) or `data` (ENSIP-24) (default: `text`)
+* Schemas MAY include definitions for key names which are already declared and/or reserved for global use in other ENSIPs. These entries can include examples and expanded descriptions to give more information about how the key should be handled in the given context, however the specified use of these keys MUST NOT be in direct conflict of their original definition as provided by existing ENSIPs. Implementors should be aware that these keys could still be read or written to by other implementations that have no knowledge of schema records.
+* Attributes can include an optional `recordType` ("text" | "data") keyword which indicates if the record is stored as `text` (ENSIP-5) or `data` (ENSIP-24) (default: `text`).
+* Attributes can make us of the `format` keyword as defined in [section 7.2 of the JSON schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2).
+* Schemas can make use of the `required` keyword as defined in [section 6.5.3 of the JSON schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.6.5.3).
+
+#### Validation and Required Fields
+
+For clients that facilitate storing metadata records: You SHOULD validate provided values against the schema, including type/format declarations and `required` properties, before writing any records. If any individual records requested to be written would cause validation to fail, the entire write operation SHOULD be halted and an error returned.
+
+For clients that facilitate retrieving metadata records: You MAY validate returned records and ignore an entire node's data if validation fails against the provided schema.
 
 #### Basic schema example:
 
