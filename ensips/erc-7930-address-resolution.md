@@ -30,7 +30,7 @@ This ENSIP uses the term **ERC-7930 Interoperable Address** as defined by ERC-79
 For the purposes of this ENSIP:
 
 - A **chain identifier** is an ERC-7930 Interoperable Address with the chain specified but a zero-length address (including the zero-length byte).
-- The `data()` **key** is constructed by concatenating the prefix `"erc7930.address: "` with a chain identifier.
+- The `data()` **key** is constructed as `erc7930-address[<chain-identifier>]`.
 - The `data()` **value** is the raw target address bytes (no length prefix).
 
 ### Data Key Standard
@@ -42,23 +42,17 @@ Resolvers MUST implement the ENSIP-24 `data()` resolution interface to support t
 The standard uses the following key format:
 
 ```
-erc7930.address: <chain-identifier>
+erc7930-address[<chain-identifier>]
 ```
 
-The key is constructed by concatenating:
-
-```
-"erc7930.address: " || <chain-identifier>
-```
-
-Note the single space after the colon; it is part of the key.
+The key is constructed by concatenating the literal `erc7930-address[` with the chain identifier and `]`.
 
 A **chain identifier** is an ERC-7930 Interoperable Address with the chain specified but a zero-length address (including the zero-length byte).
 
 This key identifies the ERC-7930 Address component and is interpreted as:
 
 ```
-erc7930.address: <chain-identifier> -> ERC-7930 target address
+erc7930-address[<chain-identifier>] -> ERC-7930 target address
 ```
 
 `<chain-identifier>` MUST be the full ERC-7930 Interoperable Address with a zero-length address component (address length set to zero, and no address bytes present). This allows the key to encode the chain identifier and any relevant ERC-7930 metadata while omitting the target address.
@@ -72,7 +66,7 @@ The value stored at this key MUST be the ERC-7930 defined Address bytes for the 
 For an Ethereum address on mainnet, the `data()` key is:
 
 ```
-erc7930.address: 0x00010000010100
+erc7930-address[0x00010000010100]
 ```
 
 Where the `0x00` at the end represents a zero-length address.
@@ -91,7 +85,7 @@ To construct the full ERC-7930 Interoperable Address, replace the zero-length by
 
 ### Consistency Requirements
 
-If a resolver supports both the `erc7930.address` data profile and `addr()` or `addr(coinType)`, it MUST ensure that these functions return consistent addresses for the same chain, and the respective events are emitted when the address value is updated. 
+If a resolver supports both the `erc7930-address` data profile and `addr()` or `addr(coinType)`, it MUST ensure that these functions return consistent addresses for the same chain, and the respective events are emitted when the address value is updated. 
 
 ## Rationale
 
@@ -99,7 +93,7 @@ This design allows resolvers to store interoperable addresses efficiently withou
 
 ## Backwards Compatibility
 
-Resolvers implementing the `erc7930.address` data profile are not required to support `addr()` or `addr(coinType)`. If a resolver supports multiple address resolution interfaces, it MUST maintain consistency between them as specified in the Consistency Requirements section above.
+Resolvers implementing the `erc7930-address` data profile are not required to support `addr()` or `addr(coinType)`. If a resolver supports multiple address resolution interfaces, it MUST maintain consistency between them as specified in the Consistency Requirements section above.
 
 ## Security Considerations
 
