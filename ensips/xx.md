@@ -72,16 +72,40 @@ Immutable resources such as `ipfs` and `cbor` SHOULD be used, however `https` is
 
 If a schema is provided for a node, it specifies which additional metadata attributes are expected to be provided for that node, stored as ENSIP-5 text records or ENSIP-24 data records. Schemas MUST follow the JSON Schema specification, [version 2020-12](https://json-schema.org/draft/2020-12/json-schema-core), and describe a single-level object in which property names match the text or data record key names. Attribute key names MUST use kebab case (i.e. all lowercase with words delimited by hyphens). If additional namespacing is required, attributes MUST use dot notation as described in ENSIP-5.
 
-#### Additional details
+#### Schema Identification and Description
 
-* The schema's `$id` field SHOULD be used to identify the schema's creator and/or version.
-* The schema's `title` field identifies what entity is described in the data structure. If the schema is intended to be used with a specific `class`, the value of `title` SHOULD be the same as the class it is meant to represent.
-* If a node has a `schema` present but no `class` record set, the value of the schema's `title` SHOULD be used as the class identifier for the node.
-* Schema authors are encouraged to populate the `description` field with an explanation of the organizational role fulfilled by nodes which use this schema, in line with the `class` descriptions listed above.
-* Schemas MAY include definitions for key names which are already declared and/or reserved for global use in other ENSIPs. These entries can include examples and expanded descriptions to give more information about how the key should be handled in the given context, however the specified use of these keys MUST NOT be in direct conflict of their original definition as provided by existing ENSIPs. Implementors should be aware that these keys could still be read or written to by other implementations that have no knowledge of schema records.
-* Attributes can make us of the `format` keyword as defined in [section 7.2 of the JSON schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2).
-* Schemas can make use of the `required` keyword as defined in [section 6.5.3 of the JSON schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.6.5.3).
+The schema's `$id` field SHOULD be a valid URI and SHOULD be used to identify the schema's creator and/or version.
 
+The schema's `title` field identifies what entity is described in the data structure. If the schema is intended to be used with a specific `class`, the value of `title` SHOULD be the same as the class it is meant to represent. If a node has a `schema` present but no `class` record set, the value of the schema's `title` SHOULD be considered to be the class identifier for the node.
+
+Schema authors are encouraged to populate the `description` field with an explanation of the organizational role fulfilled by nodes which use this schema, in line with the `class` descriptions listed above.
+
+#### Interaction with Existing ENS Records
+
+Schemas MAY include definitions for key names which are already declared and/or reserved for global use in other ENSIPs. These entries can include examples and expanded descriptions to give more information about how the key should be handled in the given context, however the specified use of these keys MUST NOT be in direct conflict with their original definition as provided by existing ENSIPs.
+
+Implementors should be aware that these keys could still be read or written to by other implementations that have no knowledge of schema records.
+
+For example, a schema could include a definition for the `avatar` key to describe the expected image format or dimensions for nodes using this schema. The definition could not, however, change the fundamental meaning of `avatar` as established by ENSIP-12.
+
+```
+{
+  "properties": {
+    "avatar": {
+      "type": "string",
+      "description": "The organization's logo, preferably in SVG format. See ENSIP-12 for supported URI schemes."
+    }
+  }
+}
+```
+
+#### Supported JSON Schema Features
+
+Attributes can make use of the `format` keyword as defined in [section 7.2 of the JSON Schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2).
+
+Schemas can make use of the `required` keyword as defined in [section 6.5.3 of the JSON Schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.6.5.3).
+
+Schemas MUST describe a flat, single-level object. Advanced composition keywords (`$ref`, `allOf`, `anyOf`, `oneOf`, `if`/`then`/`else`) SHOULD NOT be used, as broad client support for these features cannot be assumed.
 
 #### Custom JSON Schema Keywords
 
@@ -111,7 +135,7 @@ For clients that facilitate retrieving metadata records: You MAY validate return
 
 ```
 {
-  "$id": "v1.0",
+  "$id": "https://example.com/schemas/person/v1.0",
   "title": "Person",
   "description": "This node represents an individual human",
   "type": "object",
@@ -131,7 +155,7 @@ For clients that facilitate retrieving metadata records: You MAY validate return
     },
     "avatar": {
       "type": "string",
-      "description": "a URL to an image of this person to be used as their profile picture",
+      "description": "A URL to an image of this person to be used as their profile picture",
       "inherit": true
     }
   }
@@ -160,7 +184,7 @@ When parsing key names, the following regex can be used to isolate the base form
 
 ```
 {
-  "$id": "v1.0",
+  "$id": "https://example.com/schemas/person/v1.0",
   "title": "Person",
   "description": "This node represents an individual human",
   "type": "object",
@@ -175,7 +199,7 @@ When parsing key names, the following regex can be used to isolate the base form
     },    
     "avatar": {
       "type": "string",
-      "description": "a URL to an image of this person to be used as their profile picture",
+      "description": "A URL to an image of this person to be used as their profile picture",
       "inherit": true
     }
   },
