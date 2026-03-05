@@ -79,9 +79,27 @@ If a schema is provided for a node, it specifies which additional metadata attri
 * If a node has a `schema` present but no `class` record set, the value of the schema's `title` SHOULD be used as the class identifier for the node.
 * Schema authors are encouraged to populate the `description` field with an explanation of the organizational role fulfilled by nodes which use this schema, in line with the `class` descriptions listed above.
 * Schemas MAY include definitions for key names which are already declared and/or reserved for global use in other ENSIPs. These entries can include examples and expanded descriptions to give more information about how the key should be handled in the given context, however the specified use of these keys MUST NOT be in direct conflict of their original definition as provided by existing ENSIPs. Implementors should be aware that these keys could still be read or written to by other implementations that have no knowledge of schema records.
-* Attributes can include an optional `recordType` ("text" | "data") keyword which indicates if the record is stored as `text` (ENSIP-5) or `data` (ENSIP-24) (default: `text`).
 * Attributes can make us of the `format` keyword as defined in [section 7.2 of the JSON schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2).
 * Schemas can make use of the `required` keyword as defined in [section 6.5.3 of the JSON schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.6.5.3).
+
+
+#### Custom JSON Schema Keywords
+
+##### Record Type
+
+Attributes can include an optional `recordType` ("text" | "data") keyword which indicates if the record is stored as `text` (ENSIP-5) or `data` (ENSIP-24) (default: `text`).
+
+##### Inheritance
+
+Attributes can include an optional `inherit` (bool) keyword, which indicates whether the attribute's value should be inherited from an ancestor node if no value is set locally.
+
+When a client encounters an attribute with `inherit` set to `true` and no value is present on the current node, the client SHOULD walk up the name hierarchy (checking the parent node, then the parent's parent, and so on) until a node is found that has a value set for that attribute. If no ancestor has a value set for the specified key, the attribute is treated as absent.
+
+If the current node already has a value set for the attribute, the inherit keyword is ignored and the local value is used.
+
+An inherited value SHOULD be treated as satisfying the required keyword for validation purposes.
+
+Inheritance lookups are based solely on the presence of a matching text or data record key on an ancestor node. The ancestor does not need to have a schema record set.
 
 #### Validation and Required Fields
 
@@ -98,22 +116,23 @@ For clients that facilitate retrieving metadata records: You MAY validate return
   "description": "This node represents an individual human",
   "type": "object",
   "properties": {
-    "firstName": {
+    "first-name": {
       "type": "string",
       "description": "The person's first name.",
     },
-    "lastName": {
+    "last-name": {
       "type": "string",
       "description": "The person's last name."
     },
-    "proofOfHumanity": {
+    "proof-of-humanity": {
       "type": "string",
       "description": "A signed attestation of proof of humanity.",
       "recordType": "data"
     },
     "avatar": {
       "type": "string",
-      "description": "a URL to an image used as an avatar or logo"
+      "description": "a URL to an image of this person to be used as their profile picture",
+      "inherit": true
     }
   }
 }
@@ -124,16 +143,16 @@ For clients that facilitate retrieving metadata records: You MAY validate return
 Schemas can support parameterized properties, which allow a single property to have multiple variant-specific values. Parameters are specified using bracket notation appended to the property when used as a key name:
 
 ```
-keyName[parameter]
+key-name[parameter]
 ```
 
-Schemas MAY simultaneously support both the base form (`keyName`) and parameterized form (`keyName[parameter]`). The parameterized form with empty brackets (`keyName[]`) SHALL NOT be allowed.
+Schemas MAY simultaneously support both the base form (`key-name`) and parameterized form (`key-name[parameter]`). The parameterized form with empty brackets (`key-name[]`) SHALL NOT be allowed.
 
 When both base and parameterized forms exist, clients SHOULD treat them as independent records, with the base form serving as a default when no specific parameter is requested.
 
-To add a parameterized key to a JSON schema, add a regex pattern which enforces the use of brackets to the `patternProperties` object. The following example regex value will accept either the base form or the parameterized form, while rejected empty brackets: `^keyName(\[[^\]]+\])?$`
+To add a parameterized key to a JSON schema, add a regex pattern which enforces the use of brackets to the `patternProperties` object. The following example regex value will accept either the base form or the parameterized form, while rejected empty brackets: `^key-name(\[[^\]]+\])?$`
 
-When parsing key names, the following regex can be used to isolate the base form (group 1) and the parameter (group 3, if provided): `^(keyName)(\[([^\]]+)\])?$`
+When parsing key names, the following regex can be used to isolate the base form (group 1) and the parameter (group 3, if provided): `^(key-name)(\[([^\]]+)\])?$`
 
 **Note:** Defining which values are allowed to be passed inside of the brackets when setting and retrieving records is up to schema publishers and is outside the scope of this ENSIP.
 
@@ -146,21 +165,22 @@ When parsing key names, the following regex can be used to isolate the base form
   "description": "This node represents an individual human",
   "type": "object",
   "properties": {
-    "firstName": {
+    "first-name": {
       "type": "string",
       "description": "The person's first name.",
     },
-    "lastName": {
+    "last-name": {
       "type": "string",
       "description": "The person's last name."
     },    
     "avatar": {
       "type": "string",
-      "description": "a URL to an image used as an avatar or logo"
+      "description": "a URL to an image of this person to be used as their profile picture",
+      "inherit": true
     }
   },
   "patternProperties": {
-    "^proofOfHumanity(\[[^\]]+\])?$": {
+    "^proof-of-humanity(\[[^\]]+\])?$": {
       "type": "string",
       "description": "A signed proof of humanity attestation. The name of a specific provider can be passed as a parameter.",
       "recordType": "data"
@@ -169,7 +189,7 @@ When parsing key names, the following regex can be used to isolate the base form
 }
 ```
 
-In this example, the owner of the node could use the key `proofOfHumanity[provider]` to store a proof of humanity attestation from a specific provider, and they could use `proofOfHumanity` to publish a default attestation to be retrieved if no provider is specified.
+In this example, the owner of the node could use the key `proof-of-humanity[provider]` to store a proof of humanity attestation from a specific provider, and they could use `proof-of-humanity` to publish a default attestation to be retrieved if no provider is specified.
 
 ## Backwards Compatibility
 
