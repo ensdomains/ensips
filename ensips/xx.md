@@ -72,6 +72,8 @@ Immutable resources such as `ipfs` and `cbor` SHOULD be used, however `https` is
 
 If a schema is provided for a node, it specifies which additional metadata attributes are expected to be provided for that node, stored as ENSIP-5 text records or ENSIP-24 data records. Schemas MUST follow the JSON Schema specification, [version 2020-12](https://json-schema.org/draft/2020-12/json-schema-core), and describe a single-level object in which property names match the text or data record key names. Attribute key names MUST use kebab case (i.e. all lowercase with words delimited by hyphens). If additional namespacing is required, attributes MUST use dot notation as described in ENSIP-5.
 
+All properties MUST be of type "string", as this most closely matches Solidity's `string` or `bytes` data types. All properties MUST include a `description` which explains the use of the specified attribute.
+
 #### Schema Identification and Description
 
 The schema's `$id` field SHOULD be a valid URI and SHOULD be used to identify the schema's creator and/or version.
@@ -80,7 +82,7 @@ The schema's `title` field identifies what entity is described in the data struc
 
 Schema authors are encouraged to populate the `description` field with an explanation of the organizational role fulfilled by nodes which use this schema, in line with the `class` descriptions listed above.
 
-#### Interaction with Existing ENS Records
+#### Interaction with Existing ENS Records and Global Key Names
 
 Schemas MAY include definitions for key names which are already declared and/or reserved for global use in other ENSIPs. These entries can include examples and expanded descriptions to give more information about how the key should be handled in the given context, however the specified use of these keys MUST NOT be in direct conflict with their original definition as provided by existing ENSIPs.
 
@@ -99,19 +101,55 @@ For example, a schema could include a definition for the `avatar` key to describ
 }
 ```
 
-#### Supported JSON Schema Features
+#### JSON Schema Validation and Implementation Notes
 
-Attributes can make use of the `format` keyword as defined in [section 7.2 of the JSON Schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2).
+ENS text records are stored as a map of strings, which would be representd in JSON as an object in which all properties have strings for values. Therefore, schemas MUST describe a flat, single-level object in which all properties are of type `string`.
 
-Schemas can make use of the `required` keyword as defined in [section 6.5.3 of the JSON Schema specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.6.5.3).
+All standard JSON Schema keywords are available for use according to the [JSON Schema 2020-12 specification](https://json-schema.org/draft/2020-12/json-schema-core), however advanced composition keywords (`$ref`, `allOf`, `anyOf`, `oneOf`, `if`/`then`/`else`) MUST NOT be used, as broad client support for these features cannot be assumed.
 
-Schemas MUST describe a flat, single-level object. Advanced composition keywords (`$ref`, `allOf`, `anyOf`, `oneOf`, `if`/`then`/`else`) SHOULD NOT be used, as broad client support for these features cannot be assumed.
+The following keywords have specific guidance for use within this ENSIP:
 
-#### Custom JSON Schema Keywords
+* [`format`](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2): Useful for annotating the expected format of a value (e.g. `"uri"`, `"date"`).
+* [`required`](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.6.5.3): Indicates attributes that must be present for a node's data set to be considered valid.
+* [`default`](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.9.2): Provides a suggested fallback value for an attribute.
+* [`examples`](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.9.5): Provides one or more example values to clarify expected formatting or data type.
+* [`patternProperties`](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-00#rfc.section.10.3.2.2): Used to define parameterized key names; see [Parameterized Key Names](#parameterized-key-names) below.
+
+For interfaces that facilitate writing metadata records: For each attribute listed in the schema, `description` and `examples` MAY be shown to end users to help them understand what kind of values are expected. If a `default` value is provided, it MAY be pre-filled for the user or entered on their behalf if they omit a value for the attribute. Before any records are written, all data the user wishes to updated for the specifed node SHOULD be validated against the schema's type declarations and `required` properties. Data MAY also be validated against `format` descriptors. If any individual record would cause validation to fail, the entire write operation SHOULD be halted and an error returned.
+
+For interfaces that retrieve and display metadata records: You MAY validate returned records and ignore an entire node's data if validation fails against the provided schema.
+
+#### Parameterized Key Names
+
+Schemas can support parameterized properties, which allow a single property to have multiple variant-specific values. Parameters are specified using bracket notation appended to the property when used as a key name:
+
+```
+key-name[parameter]
+```
+
+Schemas MAY simultaneously support both the base form (`key-name`) and parameterized form (`key-name[parameter]`). The parameterized form with empty brackets (`key-name[]`) SHALL NOT be allowed.
+
+When both base and parameterized forms exist, clients SHOULD treat them as independent records, with the base form serving as a default when no specific parameter is requested.
+
+To add a parameterized key to a JSON schema, add a regex pattern which enforces the use of brackets to the `patternProperties` object. The following example regex value will accept either the base form or the parameterized form, while rejected empty brackets: `^key-name(\[[^\]]+\])?$`
+
+When parsing key names, the following regex can be used to isolate the base form (group 1) and the parameter (group 3, if provided): `^(key-name)(\[([^\]]+)\])?$`
+
+**Note:** Defining which values are allowed to be passed inside of the brackets when setting and retrieving records is up to schema publishers and is outside the scope of this ENSIP.
+
+#### Extension Keywords
 
 ##### Record Type
 
-Attributes can include an optional `recordType` ("text" | "data") keyword which indicates if the record is stored as `text` (ENSIP-5) or `data` (ENSIP-24) (default: `text`).
+Attributes MAY include a `recordType` keyword with a value of `"text"` or `"data"`, indicating whether the record is stored as an ENSIP-5 text record or an ENSIP-24 data record. If `recordType` is omitted, implementations MUST default to `"text"`.
+
+##### Parameter Type
+
+Parameterized key names (declared in the `patternProperties` section of the schema) MAY include a `parameterType` keyword with a value of `"map"` or `"array"`. If `parameterType` is omitted, implementations MUST default to `"map"`.
+
+When `parameterType` is `"map"`, parameters are free-form key-value pairs used for arbitrary lookup (e.g. `proof-of-humanity[provider-name]`). The parameter can be any valid value.
+
+When `parameterType` is `"array"`, parameters represent a zero-indexed, sequential list (e.g. `member[0]`, `member[1]`, `member[2]`). Clients SHOULD retrieve array entries by starting at index `0` and incrementing until no value is found. If a gap exists in the sequence, clients will stop at the gap and entries beyond it will not be retrieved. Record setters MUST NOT leave gaps in the sequence.
 
 ##### Inheritance
 
@@ -124,12 +162,6 @@ If the current node already has a value set for the attribute, the inherit keywo
 An inherited value SHOULD be treated as satisfying the required keyword for validation purposes.
 
 Inheritance lookups are based solely on the presence of a matching text or data record key on an ancestor node. The ancestor does not need to have a schema record set.
-
-#### Validation and Required Fields
-
-For clients that facilitate storing metadata records: You SHOULD validate provided values against the schema, including type/format declarations and `required` properties, before writing any records. If any individual records requested to be written would cause validation to fail, the entire write operation SHOULD be halted and an error returned.
-
-For clients that facilitate retrieving metadata records: You MAY validate returned records and ignore an entire node's data if validation fails against the provided schema.
 
 #### Basic schema example:
 
@@ -162,23 +194,7 @@ For clients that facilitate retrieving metadata records: You MAY validate return
 }
 ```
 
-#### Parameterized Key Names
 
-Schemas can support parameterized properties, which allow a single property to have multiple variant-specific values. Parameters are specified using bracket notation appended to the property when used as a key name:
-
-```
-key-name[parameter]
-```
-
-Schemas MAY simultaneously support both the base form (`key-name`) and parameterized form (`key-name[parameter]`). The parameterized form with empty brackets (`key-name[]`) SHALL NOT be allowed.
-
-When both base and parameterized forms exist, clients SHOULD treat them as independent records, with the base form serving as a default when no specific parameter is requested.
-
-To add a parameterized key to a JSON schema, add a regex pattern which enforces the use of brackets to the `patternProperties` object. The following example regex value will accept either the base form or the parameterized form, while rejected empty brackets: `^key-name(\[[^\]]+\])?$`
-
-When parsing key names, the following regex can be used to isolate the base form (group 1) and the parameter (group 3, if provided): `^(key-name)(\[([^\]]+)\])?$`
-
-**Note:** Defining which values are allowed to be passed inside of the brackets when setting and retrieving records is up to schema publishers and is outside the scope of this ENSIP.
 
 #### Basic schema example including parameterized properties:
 
