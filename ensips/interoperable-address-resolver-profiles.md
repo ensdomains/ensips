@@ -81,6 +81,24 @@ When invoked via ENSIP-10 `resolve(name, data)` where `data` encodes `iReverse(i
 
 This profile is intended to support chain-specific "reverse naming" patterns. The mechanism for establishing and verifying reverse associations is out of scope for this ENSIP.
 
+### Profile: `iText(key) -> string`
+
+This profile resolves an ENS name to a UTF-8 string value associated with a string key, consistent with ENSIP-5 text records.
+
+The `key` argument is a `string` type, matching ENSIP-5.
+
+ABI signature:
+
+```solidity
+function iText(string calldata key) external view returns (string memory);
+```
+
+When invoked via ENSIP-10 `resolve(name, data)` where `data` encodes `iText(key)`:
+
+- The resolver MAY compute `node` from `name` as described above.
+- The resolver MUST return the string value associated with the given `name` and `key`.
+- If no value is set for `(node, key)`, the resolver MUST return an empty string.
+
 ### Profile: `iData(key) -> bytes`
 
 This profile resolves an ENS name to arbitrary bytes data associated with a string key, consistent with ENSIP-24.
@@ -104,6 +122,7 @@ When invoked via ENSIP-10 `resolve(name, data)` where `data` encodes `iData(key)
 If a resolver supports both:
 
 - `iAddress(chain-identifier)` and `addr()` / `addr(coinType)`, or
+- `iText(key)` and `text(node, key)` (ENSIP-5), or
 - `iData(key)` and `data(node, key)` (ENSIP-24),
 
 it MUST ensure that records are consistent where a natural mapping exists.
@@ -126,6 +145,12 @@ resolver.resolve(dnsencode("alice.eth"), abi.encodeWithSignature("iAddress(bytes
 
 ```text
 resolver.resolve(dnsencode("alice.eth"), abi.encodeWithSignature("iReverse(bytes)", interoperableAddress))
+```
+
+- Resolve a text record for `alice.eth`:
+
+```text
+resolver.resolve(dnsencode("alice.eth"), abi.encodeWithSignature("iText(string)", "some.key"))
 ```
 
 - Resolve arbitrary data for `alice.eth`:
