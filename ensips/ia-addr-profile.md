@@ -40,9 +40,10 @@ function addr(bytes32 node, bytes calldata chainIdentifier) external view return
 When invoked:
 
 - The resolver MUST return the target address bytes for the given `node` and `chain-identifier`.
-- If no address is set for the given `node` and `chain-identifier`, the resolver MUST return an empty bytes array.
+- If no address is set for the given `node` and `chain-identifier`, the resolver MUST return an empty bytes array. 
+- The returned bytes are the address for the target chain. The address MUST be in the CAIP-350 binary format, which is already standard for EVM addresses.
 
-The returned bytes are the **Address bytes** for the target chain. The address MUST be in the CAIP-350 binary format, which is already standard for EVM addresses. Clients can construct a full ERC-7930 Interoperable Address by taking `chain-identifier` (which contains a zero-length address) and replacing the zero-length with the correct length of the returned bytes, then appending the returned bytes.
+Clients can construct a full ERC-7930 Interoperable Address by taking `chain-identifier` (which contains a zero-length address) and replacing the zero-length with the correct length of the returned bytes, then appending the returned bytes.
 
 ### Consistency Requirements
 
@@ -73,7 +74,7 @@ This profile extends rather than replaces existing profiles. Existing ENS client
 
 ## Security Considerations
 
-- Clients MUST treat empty bytes / empty string as "no record set".
+- Clients MUST treat empty bytes as "no record set", consistent with [ENSIP-1](./1.md) (zero address for `addr(node)`) and [ENSIP-9](./9.md) (zero-length bytes for `addr(node, coinType)`).
 - Implementers SHOULD ensure that `chain-identifier` is validated as an ERC-7930 interoperable identifier with a zero-length address to avoid ambiguous resolution.
 
 ## Copyright
