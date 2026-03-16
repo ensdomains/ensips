@@ -13,30 +13,15 @@ ensip:
 
 ## Abstract
 
-This ENSIP extends `addr()` to use the [Interoperable Address](https://eips.ethereum.org/EIPS/eip-7930) (or its chain-identifier component) **instead of coinType** when specifying the chain. Only `addr()` uses coinType. This profile may be invoked via direct resolver calls, ENSIP-10 `resolve()`, CCIP-Read, gateway APIs, or any other resolution mechanism.
+This ENSIP extends the `addr()` resolver profile to use the [Interoperable Address](https://eips.ethereum.org/EIPS/eip-7930) chain identifiers **instead of coinType** when specifying the chain. This profile may be invoked on any resolver (extended or non-extended) via direct `addr()` calls or via the [ENSIP-10](./10.md) Extended Resolver `resolve()` function.
 
 ## Motivation
 
-Existing resolver profiles such as `addr(bytes32 node, uint256 coinType)` (ENSIP-9) use a `uint256` coin type to identify the target chain when resolving address records. This ENSIP uses the Interoperable Address (ERC-7930) instead: the chain-identifier replaces coinType as the chain selector.
-
-It is useful to define resolver profiles that:
-
-- Extend `addr()` to use Interoperable Address (chain-identifier) instead of coinType for chain selection.
-- Work with any resolution mechanism: direct calls, ENSIP-10, gateways, CCIP-Read, etc.
+There has been no widely accepted standard to create a globally unique binary address format for chain identification. ENS coinTypes (ENSIP-9, ENSIP-11) were created to provide a single ID for chains, including EVM and non-EVM. The existing `addr(bytes32 node, uint256 coinType)` profile uses this ENS-specific approach. ERC-7930 Interoperable Addresses solve this problem with an Ethereum-wide standard likely to be widely adopted. This ENSIP lets ENS use that standard instead of an ENS-specific solution.
 
 ## Specification
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119 and RFC 8174.
-
-### Scope and Invocation Model
-
-The profile defined in this document may be invoked through any resolution mechanism, including but not limited to:
-
-- **Direct resolver calls**: Call the profile function on the resolver contract with the full signature (including `node`).
-- **ENSIP-10 ExtendedResolver**: When using `resolve(bytes name, bytes data)`, the `data` parameter is ABI-encoded calldata for the addr profile.
-- **CCIP-Read, gateway APIs, and other mechanisms**: As defined by those specifications.
-
-The same function signatures and calldata format apply across all mechanisms.
 
 ### Terminology
 
@@ -71,7 +56,7 @@ If a resolver supports both `addr(node, chainIdentifier)` (this profile) and `ad
 resolver.addr(node, chainIdentifier)
 ```
 
-**Via ENSIP-10:**
+**Via [ENSIP-10](./10.md) Extended Resolver:**
 
 ```text
 node = namehash("alice.eth")
