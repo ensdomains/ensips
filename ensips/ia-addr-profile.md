@@ -40,15 +40,7 @@ The same function signatures and calldata format apply across all mechanisms.
 
 ### Terminology
 
-- **chain-identifier**: An [Interoperable Address](https://eips.ethereum.org/EIPS/eip-7930) with a zero-length target address. Per ERC-7930, the binary format is:
-
-```
-┌─────────┬───────────┬──────────────────────┬────────────────┬───────────────┐
-│ Version │ ChainType │ ChainReferenceLength │ ChainReference │ AddressLength │
-└─────────┴───────────┴──────────────────────┴────────────────┴───────────────┘
-```
-
-  The `chain-identifier` MUST have `AddressLength` set to zero (no Address bytes). It encodes the target chain only. Example 4 in ERC-7930 illustrates this: a Solana mainnet network with no address.
+- **chain-identifier**: An [Interoperable Address](https://eips.ethereum.org/EIPS/eip-7930) with a zero-length target address. Per ERC-7930, the binary format of the `chain-identifier` MUST have `AddressLength` set to zero (no Address bytes). It encodes the target chain only. Example 4 in ERC-7930 illustrates this: a Solana mainnet network with no address.
 
 ### Profile: `addr(bytes32 node, bytes chain-identifier) -> bytes`
 
