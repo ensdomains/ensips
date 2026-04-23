@@ -25,6 +25,13 @@ This ENSIP intentionally does not attempt to recreate all DNS zone semantics onc
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119 and RFC 8174.
 
+### Dependencies and Terminology
+
+- ENS fundamentals and `namehash` are as defined in ENSIP-1.
+- The `data(bytes32 node, string key)` interface is as defined in ENSIP-24.
+- DNS wire formats are as defined in RFC 1035, RFC 3596 for `AAAA`, and RFC 4592 for wildcard terminology and behavior.
+- Unless otherwise stated, "owner name" means the DNS owner name relative to the ENS node identified by `node`.
+
 ### Overview
 
 This ENSIP defines a convention for storing DNS RRsets inside ENSIP-24 arbitrary data records.
@@ -66,7 +73,7 @@ If a resolver supports ENSIP-24's optional `supportedDataKeys(bytes32)` interfac
 
 ### Supported Record Types
 
-This ENSIP standardizes the following RR types:
+This ENSIP defines the following interoperable RR type subset:
 
 - `A` (type 1)
 - `CNAME` (type 5)
@@ -76,7 +83,7 @@ This ENSIP standardizes the following RR types:
 
 This curated subset is intentional. These records cover the common cases of web hosting, canonical host aliases, simple text metadata, and mail routing without reintroducing the full complexity of DNS zone management.
 
-Resolvers MAY expose additional nonstandard keys, but clients claiming compliance with this ENSIP MUST implement only the keys and encodings defined here. Additional RR types SHOULD be standardized in future ENSIPs rather than inferred ad hoc.
+Resolvers and clients MAY support additional RR types, but behavior outside this subset is out of scope for strict interoperability under this ENSIP version. A resolver or client claiming compliance for one of the RR types listed above MUST use the corresponding key and encoding defined here.
 
 ### Value Encoding
 
@@ -88,11 +95,11 @@ All multi-octet integers MUST use network byte order.
 
 All domain names embedded in RDATA MUST be encoded as absolute DNS names in the uncompressed RFC 1035 section 3.1 wire format, including the terminating zero-length root label. Compression pointers MUST NOT be used.
 
-A zero-length return value means the RRset is absent. Authoring tools and resolvers SHOULD clear a key instead of intentionally storing an empty RRset.
+A compliant resolver MUST return a zero-length value (`0x`) when an RRset is absent. Clients MUST treat a zero-length return value as absence. Authoring tools and resolvers SHOULD clear a key instead of intentionally storing an empty RRset.
 
 #### A
 
-The value for `dns.a` or `<owner>.dns.a` is the concatenation of zero or more 4-byte IPv4 addresses, matching the `A` RDATA format in RFC 1035 section 3.4.1.
+The value for `dns.a` or `<owner>.dns.a` is the concatenation of one or more 4-byte IPv4 addresses, matching the `A` RDATA format in RFC 1035 section 3.4.1.
 
 If the RRset contains `N` records, the value length MUST be `N * 4`.
 
@@ -105,7 +112,7 @@ Example:
 
 #### AAAA
 
-The value for `dns.aaaa` or `<owner>.dns.aaaa` is the concatenation of zero or more 16-byte IPv6 addresses, matching the `AAAA` RDATA format in RFC 3596 section 2.2.
+The value for `dns.aaaa` or `<owner>.dns.aaaa` is the concatenation of one or more 16-byte IPv6 addresses, matching the `AAAA` RDATA format in RFC 3596 section 2.2.
 
 If the RRset contains `N` records, the value length MUST be `N * 16`.
 
@@ -161,7 +168,7 @@ For the supported RR types, gateways and authoring tools MUST apply the followin
 - Each TXT item's `rdlength` MUST fit entirely inside the value, and its `txt-rdata` MUST be valid RFC 1035 TXT RDATA.
 - Each MX item MUST contain a full 2-byte preference field followed by one absolute domain name and no trailing bytes beyond the concatenated sequence.
 
-Clients SHOULD preserve stored record order when returning `A`, `AAAA`, and `TXT` RRsets. Clients resolving `MX` records SHOULD sort the decoded records by ascending `preference` before use, preserving stored order among records with the same preference.
+Clients SHOULD preserve stored record order when returning `A`, `AAAA`, and `TXT` RRsets. Clients consuming `A` and `AAAA` RRsets MAY randomize or otherwise balance among equivalent addresses for connection attempts. Clients resolving `MX` records SHOULD sort the decoded records by ascending `preference` before use, preserving stored order among records with the same preference.
 
 ### Resolution Algorithm
 
@@ -181,7 +188,7 @@ Given an ENS zone apex `zone`, a relative owner name `owner`, and a query type `
 6. If the returned value is non-empty, decode it according to the rules above and return the RRset.
 7. If the returned value is empty and `qtype` is not `CNAME`, query the corresponding `CNAME` key for the same owner.
 8. If a `CNAME` is present, follow the `CNAME` target using normal DNS resolution rules. Clients SHOULD cap `CNAME` chasing to a small finite limit, such as 8 hops.
-9. If no exact-match RRset exists, a client MAY apply wildcard owner-name matching as described below.
+9. If no exact-match RRset exists, and the client can determine that the exact owner name does not otherwise exist within this ENSIP key space, a client MAY apply wildcard owner-name matching as described below.
 10. Otherwise, return no answer.
 
 A client MUST treat malformed encodings as an error for that RRset and MUST NOT attempt to partially decode them.
@@ -196,14 +203,15 @@ A client applying wildcard owner-name matching SHOULD emulate RFC 4592 behavior 
 
 1. Wildcard synthesis applies only when the exact owner name has no RRset standardized by this ENSIP.
 2. The client searches for the closest enclosing wildcard owner name within the same ENS node.
-3. If a matching wildcard RRset exists for the requested type, the client returns that synthesized RRset.
-4. If no wildcard RRset exists for the requested type, the client MAY check for a wildcard `CNAME` RRset and follow it.
+3. A practical search algorithm for an owner name such as `www.app` is to try `*.app` and then `*`, stopping at the first matching wildcard owner name. More generally, clients replace the leftmost remaining label with `*` and repeat while moving toward the apex.
+4. If a matching wildcard RRset exists for the requested type, the client returns that synthesized RRset.
+5. If no wildcard RRset exists for the requested type, the client MAY check for a wildcard `CNAME` RRset and follow it.
 
 Because ENSIP-24 does not define a mandatory "has any records for owner name" primitive analogous to ENSIP-6's `hasDNSRecords`, exact-owner existence checks may be approximate unless the resolver also implements `supportedDataKeys(bytes32)`. Clients that cannot safely determine exact-owner existence SHOULD disable wildcard owner-name synthesis rather than risk returning an incorrect answer.
 
 ### TTL
 
-This ENSIP does not store per-record or per-RRset TTL values.
+This ENSIP does not store per-record or per-RRset TTL values. Onchain values represent authoritative record content only.
 
 Gateways and other offchain resolvers are expected to cache onchain data according to their own operational needs. Implementations SHOULD use conservative cache lifetimes and SHOULD invalidate cached values when they observe ENSIP-24 `DataChanged` events for the relevant `(node, key)` tuple.
 
@@ -230,6 +238,8 @@ Resolvers that already expose arbitrary ENSIP-24 data remain compatible; they si
 ## Security Considerations
 
 Applications using this ENSIP are trusting the controller of the ENS name, or the resolver it designates, to provide correct DNS data. A malicious or compromised resolver can direct traffic to attacker-controlled IP addresses or hostnames.
+
+Gateways and other clients resolving onchain data should account for block-finality and reorg risk when reading recent state, caching results, or serving responses derived from a specific block.
 
 Clients MUST validate encodings strictly. Length mismatches, truncated domain names, invalid compression pointers, or trailing bytes can otherwise cause incorrect parsing or ambiguous resolution results.
 
