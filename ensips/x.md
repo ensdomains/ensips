@@ -7,19 +7,21 @@ ensip:
   status: draft
 ---
 
-# ENSIP-X: DNS Resource Records via Arbitrary Data Resolution
+# ENSIP-X: DNS RRsets via Arbitrary Data Resolution
 
 ## Abstract
 
-This ENSIP defines a lightweight resolver profile for storing common DNS Internet-class resource record sets on ENS names using ENSIP-24's `data(bytes32 node, string key)` interface. It standardizes key names, owner-name scoping, and binary encodings for `A`, `AAAA`, `CNAME`, `TXT`, and `MX` records so gateways can resolve `.eth` names to IP addresses and other common DNS data without implementing the full DNS-in-ENS zone model from ENSIP-6.
+This ENSIP defines a resolver profile for storing common Internet-class (`IN`) DNS RRsets on ENS names via ENSIP-24's `data(bytes32 node, string key)` interface. It standardizes a compact key grammar, owner-name scoping relative to a selected ENS zone apex, and binary encodings for `A`, `AAAA`, `CNAME`, `TXT`, and `MX` RRsets. The goal is to make simple website, alias, text, and mail-routing use cases interoperable without requiring the full DNS-in-ENS zone model from ENSIP-6.
 
 ## Motivation
 
-Users want `.eth` names to behave like decentralized domains for simple web hosting and similar applications. A gateway such as `eth.limo` should be able to read an `A` or `AAAA` record from ENS, connect to the corresponding origin, and serve content for that name. ENSIP-6 showed that DNS data can be stored in ENS, but its zone-oriented model is unnecessarily complex for this common case.
+Users want `.eth` names to behave like practical decentralized domains for simple web hosting and similar applications. A gateway such as `eth.limo` should be able to read an `A` or `AAAA` RRset from ENS, connect to the corresponding origin, and serve content for that name. Related use cases include canonical host aliases via `CNAME`, lightweight metadata via `TXT`, and basic mail-routing declarations via `MX`.
 
-ENSIP-24 introduces a generic `data(bytes32 node, string key) -> bytes` interface that is well suited to storing independent DNS RRsets. A simpler standard is needed so different resolvers, authoring tools, and gateways use the same keys and encodings.
+ENSIP-6 demonstrated that DNS data can be stored in ENS, but its zone-oriented model is heavier than necessary for this common case. Many applications only need to read or update a single RRset without re-encoding the rest of a DNS zone.
 
-This ENSIP intentionally does not attempt to recreate all DNS zone semantics onchain. It standardizes a compact subset of records and reuses DNS's native binary encodings wherever possible, which keeps the data model easy to implement and easy to bridge into conventional DNS software.
+ENSIP-24 introduces a generic `data(bytes32 node, string key) -> bytes` interface that is well suited to storing independent DNS RRsets. A simpler standard is needed so different resolvers, authoring tools, and gateways use the same keys, normalization rules, and encodings.
+
+This ENSIP intentionally does not attempt to recreate full DNS authoritative-server behavior onchain. It standardizes a compact subset of record types and reuses DNS's native RDATA encodings wherever possible, which keeps the data model easy to implement and easy to bridge into conventional DNS software.
 
 ## Specification
 
@@ -29,14 +31,15 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 - ENS fundamentals and `namehash` are as defined in ENSIP-1.
 - The `data(bytes32 node, string key)` interface is as defined in ENSIP-24.
-- DNS wire formats are as defined in RFC 1035, RFC 3596 for `AAAA`, and RFC 4592 for wildcard terminology and behavior.
-- Unless otherwise stated, "owner name" means the DNS owner name relative to the ENS node identified by `node`.
+- DNS wire formats are as defined in RFC 1035, RFC 3596 for `AAAA`, RFC 4592 for wildcard terminology and behavior, and RFC 7505 for Null MX.
+- Unless otherwise stated, "zone apex" means the ENS name whose `namehash` is supplied as `node`.
+- Unless otherwise stated, "owner name" means the DNS owner name relative to that zone apex. The apex owner name is the empty string.
 
 ### Overview
 
 This ENSIP defines a convention for storing DNS RRsets inside ENSIP-24 arbitrary data records.
 
-The `node` parameter is the ENS namehash of the zone apex, as defined in ENSIP-1. The `key` parameter identifies an owner name relative to that apex and a DNS RR type. The `bytes` return value encodes the RRset for that `(node, owner, rrtype)` tuple.
+The `node` parameter is the ENS `namehash` of the zone apex, as defined in ENSIP-1. The `key` parameter identifies an owner name relative to that apex and a DNS RR type. The `bytes` return value encodes the RRset for that `(node, owner, rrtype)` tuple.
 
 This ENSIP applies only to Internet-class (`IN`) DNS data. It does not define storage of DNS classes, DNSSEC records, zone transfers, authoritative nameserver behavior, or other full-zone features from ENSIP-6.
 
@@ -54,7 +57,7 @@ dns.<rrtype>
 Where:
 
 - `<rrtype>` is one of `a`, `aaaa`, `cname`, `txt`, or `mx`.
-- `<owner>` is a relative owner name beneath the ENS node, expressed as lowercase ASCII DNS labels separated by `.`, with no trailing `.`.
+- `<owner>` is a relative owner name beneath the zone apex, expressed as lowercase ASCII DNS labels separated by `.`, with no trailing `.`, and with no empty labels.
 - Internationalized labels in `<owner>` MUST be represented as lowercase A-labels.
 - The empty owner name is represented by omitting the owner prefix entirely. Accordingly, `dns.a` means the apex `A` RRset for the ENS node itself.
 
@@ -95,7 +98,9 @@ All multi-octet integers MUST use network byte order.
 
 All domain names embedded in RDATA MUST be encoded as absolute DNS names in the uncompressed RFC 1035 section 3.1 wire format, including the terminating zero-length root label. Compression pointers MUST NOT be used.
 
-A compliant resolver MUST return a zero-length value (`0x`) when an RRset is absent. Clients MUST treat a zero-length return value as absence. Authoring tools and resolvers SHOULD clear a key instead of intentionally storing an empty RRset.
+Authoring tools SHOULD encode all ASCII letters in embedded domain names in lowercase and SHOULD use A-labels for internationalized labels so semantically equivalent names have a deterministic byte representation.
+
+A resolver compliant with this ENSIP MUST return a zero-length value (`0x`) when a standardized RRset is absent. Clients MUST treat a zero-length return value as absence. Authoring tools and resolvers SHOULD clear a key instead of intentionally storing an empty RRset.
 
 #### A
 
@@ -141,6 +146,8 @@ Where:
 
 This length prefix is required because a TXT RR's native RDATA can contain multiple character strings, so adjacent TXT records are not otherwise self-delimiting.
 
+Within a single `txt-rdata`, long logical text may be split across multiple DNS character strings exactly as RFC 1035 permits. This ENSIP preserves that structure and does not reinterpret it.
+
 #### MX
 
 The value for `dns.mx` or `<owner>.dns.mx` is the concatenation of one or more MX RDATA items, matching RFC 1035 section 3.3.9.
@@ -158,6 +165,8 @@ Where:
 
 Because `exchange` ends with the root label, each MX item is self-delimiting.
 
+This encoding also represents Null MX, as defined in RFC 7505, by storing `preference = 0` followed by the wire-format root name `.`.
+
 ### Record Construction and Parsing
 
 For the supported RR types, gateways and authoring tools MUST apply the following rules:
@@ -167,29 +176,32 @@ For the supported RR types, gateways and authoring tools MUST apply the followin
 - A `CNAME` value MUST decode to exactly one absolute domain name and no trailing bytes.
 - Each TXT item's `rdlength` MUST fit entirely inside the value, and its `txt-rdata` MUST be valid RFC 1035 TXT RDATA.
 - Each MX item MUST contain a full 2-byte preference field followed by one absolute domain name and no trailing bytes beyond the concatenated sequence.
+- Domain-name parsers MUST reject compression pointers, relative names, truncated labels, labels longer than 63 octets, and trailing bytes beyond the declared RRset framing.
 
-Clients SHOULD preserve stored record order when returning `A`, `AAAA`, and `TXT` RRsets. Clients consuming `A` and `AAAA` RRsets MAY randomize or otherwise balance among equivalent addresses for connection attempts. Clients resolving `MX` records SHOULD sort the decoded records by ascending `preference` before use, preserving stored order among records with the same preference.
+Clients SHOULD preserve stored record order when returning `A`, `AAAA`, `TXT`, and `MX` RRsets. Clients consuming `A` and `AAAA` RRsets MAY randomize or otherwise balance among equivalent addresses for connection attempts. Clients consuming `MX` RRsets SHOULD sort the decoded records by ascending `preference` before use, preserving stored order among records with the same preference.
 
 ### Resolution Algorithm
 
-An application using this ENSIP MUST already know the ENS zone apex it is querying. How an application maps an incoming hostname to an ENS name is out of scope for this ENSIP.
+An application using this ENSIP MUST already know the selected ENS zone apex `zone` and the relative owner name `owner` beneath that zone. How an application maps an incoming hostname to a particular `(zone, owner)` pair is out of scope for this ENSIP.
 
-If an application supports both exact ENS subname resolution and zone-scoped owner names, it SHOULD prefer data stored on the exact ENS name's own `dns.<rrtype>` key over data stored on a parent node's `<owner>.dns.<rrtype>` key. This preserves ENS delegation semantics for independently managed subnames.
+TODO: This draft should explicitly specify how zone-scoped owner-name lookups interact with exact ENS subnames that have their own registry-set resolver.
 
 Given an ENS zone apex `zone`, a relative owner name `owner`, and a query type `qtype`, a client MUST:
 
-1. Normalize `zone` according to ENSIP-1 and resolve its resolver using standard ENS resolution as defined in ENSIP-1, and ENSIP-10 if wildcard ENS resolution is supported.
-2. Let `node` be `namehash(zone)` using the normalized `zone`.
-3. Normalize `owner` to lowercase ASCII DNS labels, using A-labels for any internationalized labels. The apex owner is the empty string.
-4. Construct the key:
+1. Normalize `zone` according to ENSIP-1.
+2. Discover the resolver for `zone` using standard ENS resolution. If the client supports ENSIP-10, it MAY use ENSIP-10 resolver discovery for `zone`.
+3. If no resolver can be found for `zone`, return no answer.
+4. Let `node` be `namehash(zone)` using the normalized `zone`.
+5. Normalize `owner` to lowercase ASCII DNS labels, using A-labels for any internationalized labels. The apex owner is the empty string.
+6. Construct the key:
    - `dns.<rrtype>` when `owner` is empty.
    - `<owner>.dns.<rrtype>` otherwise.
-5. Query `data(node, key)` on the resolver. If the resolver was discovered via ENSIP-10 wildcard resolution, the client MUST follow ENSIP-10 call semantics when invoking `data`.
-6. If the returned value is non-empty, decode it according to the rules above and return the RRset.
-7. If the returned value is empty and `qtype` is not `CNAME`, query the corresponding `CNAME` key for the same owner.
-8. If a `CNAME` is present, follow the `CNAME` target using normal DNS resolution rules. Clients SHOULD cap `CNAME` chasing to a small finite limit, such as 8 hops.
-9. If no exact-match RRset exists, and the client can determine that the exact owner name does not otherwise exist within this ENSIP key space, a client MAY apply wildcard owner-name matching as described below.
-10. Otherwise, return no answer.
+7. Query the resolver for `data(node, key)`. If the resolver was discovered on the exact `zone` node, call `data` directly. If the resolver was discovered only via ENSIP-10 wildcard resolution, invoke `data` using ENSIP-10 call semantics, such as `resolve(dnsencode(zone), abi.encodeCall(IDataResolver.data, (node, key)))`.
+8. If the returned value is non-empty, decode it according to the rules above and return the RRset.
+9. If the returned value is empty and `qtype` is not `CNAME`, repeat step 7 for the corresponding `CNAME` key for the same owner.
+10. If a `CNAME` is present, follow the `CNAME` target using normal DNS resolution rules. Clients SHOULD cap `CNAME` chasing to a small finite limit, such as 8 hops, and MUST detect loops.
+11. If no exact-match RRset exists, and the client can determine that the exact owner name does not otherwise exist within this ENSIP key space, a client MAY apply wildcard owner-name matching as described below.
+12. Otherwise, return no answer.
 
 A client MUST treat malformed encodings as an error for that RRset and MUST NOT attempt to partially decode them.
 
@@ -213,7 +225,7 @@ Because ENSIP-24 does not define a mandatory "has any records for owner name" pr
 
 This ENSIP does not store per-record or per-RRset TTL values. Onchain values represent authoritative record content only.
 
-Gateways and other offchain resolvers are expected to cache onchain data according to their own operational needs. Implementations SHOULD use conservative cache lifetimes and SHOULD invalidate cached values when they observe ENSIP-24 `DataChanged` events for the relevant `(node, key)` tuple.
+Gateways and other offchain resolvers are expected to cache onchain data according to their own operational needs. Implementations SHOULD use conservative cache lifetimes and SHOULD invalidate cached values when they observe ENSIP-24 `DataChanged` events for the relevant `(node, key)` tuple or when resolver selection for the zone changes in the ENS registry.
 
 Implementations MAY additionally consult the ENS registry TTL for the node as a general cache hint, but that value is outside this ENSIP and does not define a per-key TTL.
 
@@ -224,6 +236,8 @@ ENSIP-6 modeled DNS data as zone records and attempted to preserve more of DNS's
 ENSIP-24 provides a smaller primitive: bytes keyed by string. This ENSIP builds on that primitive by treating each DNS RRset as an independently stored value. That makes common updates cheaper and simpler. Changing an `A` record does not require re-encoding the rest of a zone.
 
 This ENSIP uses DNS's native RDATA wire format wherever possible rather than inventing a new binary schema. That choice minimizes translation logic, matches existing DNS libraries, and keeps the proposal close to established DNS conventions. The only exception is the extra `rdlength` framing for repeated `TXT` records, which is required to make concatenated TXT RDATA unambiguous.
+
+The fixed `.dns.<rrtype>` suffix makes keys easy to parse from the right and keeps owner names unambiguous even when they themselves contain a `dns` label.
 
 The proposal standardizes a curated subset of RR types instead of the full DNS type space. Doing so keeps the first version focused on the primary goal of decentralized web hosting and simple gateway interoperability, while leaving room for future ENSIPs to add more record types if real demand appears.
 
@@ -241,13 +255,15 @@ Applications using this ENSIP are trusting the controller of the ENS name, or th
 
 Gateways and other clients resolving onchain data should account for block-finality and reorg risk when reading recent state, caching results, or serving responses derived from a specific block.
 
-Clients MUST validate encodings strictly. Length mismatches, truncated domain names, invalid compression pointers, or trailing bytes can otherwise cause incorrect parsing or ambiguous resolution results.
+Clients MUST validate encodings strictly. Length mismatches, truncated domain names, invalid compression pointers, overlong labels, or trailing bytes can otherwise cause incorrect parsing or ambiguous resolution results.
 
-Clients that follow `CNAME` records SHOULD impose loop detection and a maximum chase depth. Clients parsing `TXT` or other variable-length data SHOULD impose reasonable size limits on returned values to avoid excessive resource usage when reading onchain data.
+Gateways or other systems that dereference `A`, `AAAA`, or `CNAME` targets to make outbound network connections MUST treat the resulting destinations as untrusted input. They SHOULD reject loopback, link-local, private-use, unique-local, multicast, unspecified, and other special-purpose addresses that could expose internal services or enable SSRF, and SHOULD apply the same policy after every `CNAME` hop.
 
-Wildcard owner-name synthesis can produce incorrect answers if the client cannot reliably determine whether an exact owner name exists. Implementations should treat wildcard support as optional unless they can make that determination safely.
+Clients that follow `CNAME` records SHOULD impose loop detection, a maximum chase depth, and reasonable response-size limits. Clients parsing `TXT` or other variable-length data SHOULD impose reasonable size limits on returned values to avoid excessive resource usage when reading onchain data.
 
-Key construction must be deterministic. Implementations should normalize owner labels to lowercase ASCII A-labels before building keys; otherwise, different applications may look up different keys for the same DNS name.
+Wildcard owner-name synthesis can produce incorrect answers if the client cannot reliably determine whether an exact owner name exists. Implementations should treat wildcard support as optional unless they can make that determination safely. Incomplete `supportedDataKeys()` results are particularly dangerous if a client treats them as authoritative for wildcard suppression.
+
+Key construction must be deterministic. Implementations should normalize owner labels and embedded domain names to lowercase ASCII A-labels before building keys or encodings; otherwise, different applications may look up or store different bytes for the same DNS name.
 
 Because this ENSIP does not define TTL storage, stale cached data can persist longer than intended if an application chooses overly long cache durations. Gateways should use conservative TTLs and prefer event-driven invalidation when practical.
 
