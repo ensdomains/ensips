@@ -1,4 +1,4 @@
-## Appendix: Updates
+## Versions
 
 | Unicode | [Release](https://www.unicode.org/history/publicationdates.html#Release_Dates) | Updated | [SHA-256 of `spec.json`](https://github.com/adraffy/ens-normalize.js/blob/main/derive/data/releases.json)
 | :-:             | :--          | :--          | :--
