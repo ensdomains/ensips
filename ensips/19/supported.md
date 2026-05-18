@@ -1,6 +1,6 @@
-## Supported Chains
+### Supported Chains
 
-### Mainnet
+#### Mainnet
 
 | Network      | `chainId`    | `reverseNamespace`    | Registrar Contract
 | :--          | --:          | --:                   | :-- 
@@ -12,7 +12,7 @@
 | Linea        | `59144`      | `"8000e708.reverse"`  | [`0x0000000000D8e504002cC26E3Ec46D81971C1664`](https://lineascan.build/address/0x0000000000D8e504002cC26E3Ec46D81971C1664)
 | Scroll       | `534352`     | `"80082750.reverse"`  | [`0x0000000000D8e504002cC26E3Ec46D81971C1664`](https://scrollscan.com/address/0x0000000000D8e504002cC26E3Ec46D81971C1664)
 
-### Sepolia
+#### Sepolia
 
 | Network     | `chainId`    | `reverseNamespace`   | Registrar Contract
 | :--         | --:          | --:                  | :--
