@@ -13,7 +13,11 @@ export const extractTitle = (directPath: string, tree: Parent) => {
         (node) => node.tagName === 'h1'
     ) as Parent[];
 
-    if (titleNodes.length > 1)
+    if (titleNodes.length == 0) {
+        throw new Error(
+            'The ENSIP title must be specified as a h1 (#) heading.'
+        );
+    } else if (titleNodes.length > 1)
         throw new TracedError(
             'More then one h1 (#) heading found, please use h2 (##) or h3 (###) headings',
             directPath,

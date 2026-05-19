@@ -19,7 +19,7 @@ import { ENSIPNumberMatch } from './util/regex';
 
 console.log('Building preview...');
 
-const markdown_files = await readdir('../ensips');
+const markdown_files = (await readdir('../ensips')).filter((f: string) => f.endsWith('.md'));
 const files = markdown_files.map((x) => `../ensips/${x}`);
 
 // delete the dist folder
