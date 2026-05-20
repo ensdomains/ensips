@@ -47,7 +47,8 @@ for (const file of files) {
     const filename = directPath.split('/').pop()!;
 
     try {
-        const fileData = await readFile(file, 'utf8');
+        let fileData = await readFile(file, 'utf8');
+        fileData = await inlineSubdirectoryFiles(fileData, file);
 
         let frontmatter: Frontmatter;
         let title: string;
@@ -151,3 +152,29 @@ for (const file of static_files) {
 }
 
 console.log('Preview built successfully!');
+
+async function inlineSubdirectoryFiles(
+    markdown: string,
+    filePath: string
+): Promise<string> {
+    // Matches [](./NUMBER/file.md) — content inclusion directives
+    const subfileLink = /^\[\]\(\.\/\d+\/([^)]+\.md)\)$/gm;
+    const dir = filePath.replace(/[^/]+$/, '');
+    const ensipNumber = filePath.match(/(\d+)\.md$/)?.[1];
+    if (!ensipNumber) return markdown;
+
+    let result = markdown;
+
+    for (const match of markdown.matchAll(subfileLink)) {
+        const [fullMatch, filename] = match;
+
+        try {
+            const content = await readFile(`${dir}${ensipNumber}/${filename}`, 'utf8');
+            result = result.replace(fullMatch, content);
+        } catch {
+            // File not found — leave the link as-is
+        }
+    }
+
+    return result;
+}
