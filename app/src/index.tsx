@@ -158,7 +158,7 @@ async function inlineSubdirectoryFiles(
     filePath: string
 ): Promise<string> {
     // Matches [](./NUMBER/file.md) — content inclusion directives
-    const subfileLink = /^\[\]\(\.\/\d+\/([^)]+\.md)\)$/gm;
+    const subfileLink = /\[\]\(\.\/\d+\/([^)]+\.md)\)/gm;
     const dir = filePath.replace(/[^/]+$/, '');
     const ensipNumber = filePath.match(/(\d+)\.md$/)?.[1];
     if (!ensipNumber) return markdown;
