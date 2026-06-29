@@ -1,0 +1,157 @@
+name: Assign ENSIP Number
+
+on:
+  issue_comment:
+    types: [created]
+
+# This workflow only computes and records the next ENSIP number in a comment;
+# the PR author then renames the file and updates the heading/title.
+permissions:
+  contents: read
+  pull-requests: write
+
+# Serialize so two concurrent /assign-ensip runs can't read the same max and
+# hand out the same number.
+concurrency:
+  group: assign-ensip
+  cancel-in-progress: false
+
+jobs:
+  assign:
+    # Only run for PR comments containing /assign-ensip from authorized users
+    if: >-
+      github.event.issue.pull_request
+      && contains(github.event.comment.body, '/assign-ensip')
+      && (
+        github.event.comment.author_association == 'OWNER'
+        || github.event.comment.author_association == 'MEMBER'
+        || github.event.comment.author_association == 'COLLABORATOR'
+      )
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.issue.number }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check if already assigned
+        id: already
+        run: |
+          # Check if an assignment comment (**ENSIP-N**) already exists on THIS PR
+          ASSIGNED_NUM=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.body | contains("**ENSIP-")) | .body' \
+            | grep -oE 'ENSIP-[0-9]+' | sed 's/ENSIP-//' | head -1 || true)
+
+          if [ -n "$ASSIGNED_NUM" ]; then
+            echo "assigned=true" >> "$GITHUB_OUTPUT"
+            echo "num=$ASSIGNED_NUM" >> "$GITHUB_OUTPUT"
+            echo "Already assigned ENSIP-${ASSIGNED_NUM} on this PR"
+          else
+            echo "assigned=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment if already assigned
+        if: steps.already.outputs.assigned == 'true'
+        run: |
+          NUM=${{ steps.already.outputs.num }}
+          gh pr comment "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "This PR has been safely recorded as **ENSIP-${NUM}**. The number is locked in, no worries."
+
+      - name: Checkout repository
+        if: steps.already.outputs.assigned == 'false'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next ENSIP number
+        if: steps.already.outputs.assigned == 'false'
+        id: number
+        run: |
+          # Source 1: highest numbered file on the default branch (merged ENSIPs)
+          MASTER_MAX=$(ls ensips/ | grep -oE '^[0-9]+\.md$' | sed 's/\.md$//' | sort -n | tail -1 || echo "0")
+          MASTER_MAX=${MASTER_MAX:-0}
+          echo "Highest number on default branch: $MASTER_MAX"
+
+          # Source 2: highest number ever assigned by the bot (from PR comments)
+          # Bot assignment comments always contain "**ENSIP-{N}**".
+          # This is the authoritative record — immune to self-assigned filenames
+          # and persists even after PRs are closed.
+          BOT_COMMENTS=$(gh api "repos/${{ github.repository }}/issues/comments" \
+            --paginate \
+            --jq '.[] | select(.body | contains("**ENSIP-")) | .body' || true)
+
+          if [ -n "$BOT_COMMENTS" ]; then
+            BOT_MAX=$(echo "$BOT_COMMENTS" | grep -oE 'ENSIP-[0-9]+' | sed 's/ENSIP-//' | sort -n | tail -1 || echo "0")
+          else
+            BOT_MAX=0
+          fi
+          BOT_MAX=${BOT_MAX:-0}
+          echo "Highest number assigned by bot: $BOT_MAX"
+
+          # Take the maximum and add 1
+          if [ "$MASTER_MAX" -gt "$BOT_MAX" ]; then
+            HIGHEST=$MASTER_MAX
+          else
+            HIGHEST=$BOT_MAX
+          fi
+
+          NEXT=$((HIGHEST + 1))
+          echo "Next ENSIP number: $NEXT"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR branch
+        if: steps.already.outputs.assigned == 'false'
+        run: gh pr checkout "$PR_NUMBER"
+
+      - name: Find new ENSIP file
+        if: steps.already.outputs.assigned == 'false'
+        id: find
+        run: |
+          # Find .md files in ensips/ that are new in this PR (not on default branch)
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+          NEW_FILES=$(git diff --name-only --diff-filter=A "origin/${DEFAULT_BRANCH}...HEAD" -- 'ensips/*.md' || true)
+          FILE_COUNT=$(echo "$NEW_FILES" | grep -c . || true)
+
+          echo "New .md files in ensips/: $NEW_FILES (count: $FILE_COUNT)"
+
+          if [ "$FILE_COUNT" -eq 0 ] || [ -z "$NEW_FILES" ]; then
+            echo "status=no_file" >> "$GITHUB_OUTPUT"
+          elif [ "$FILE_COUNT" -eq 1 ]; then
+            echo "status=found" >> "$GITHUB_OUTPUT"
+            echo "file=$NEW_FILES" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=multiple" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment if no ENSIP file found
+        if: steps.already.outputs.assigned == 'false' && steps.find.outputs.status == 'no_file'
+        run: |
+          gh pr comment "$PR_NUMBER" \
+            --body "I looked through this PR but couldn't find a new \`.md\` file in the \`ensips/\` directory. Once one is added, I'll be ready to assign a number."
+
+      - name: Comment if multiple files found
+        if: steps.already.outputs.assigned == 'false' && steps.find.outputs.status == 'multiple'
+        run: |
+          gh pr comment "$PR_NUMBER" \
+            --body "I found more than one new ENSIP file in this PR. To keep things tidy, I can only assign one number per PR — could you split them into separate PRs?"
+
+      - name: Comment on successful assignment
+        if: steps.already.outputs.assigned == 'false' && steps.find.outputs.status == 'found'
+        run: |
+          NEXT=${{ steps.number.outputs.next }}
+          FILE="${{ steps.find.outputs.file }}"
+          FILENAME=$(basename "$FILE")
+          # The **ENSIP-N** marker below is what records this number in the
+          # comment ledger (Source 2 above). Keep it in this exact form.
+          gh pr comment "$PR_NUMBER" \
+            --body "$(cat <<EOF
+          All set — this proposal is now **ENSIP-${NEXT}**. The number is reserved.
+
+          Could you make these changes to your PR so it's ready to merge?
+
+          - Rename \`ensips/${FILENAME}\` → \`ensips/${NEXT}.md\`
+          - Update the H1 heading in that file to start with \`# ENSIP-${NEXT}:\`
+          - Update the PR title to start with \`ENSIP-${NEXT}:\`
+
+          Thanks!
+          EOF
+          )"

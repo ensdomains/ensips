@@ -1,0 +1,40 @@
+name: Welcome New ENSIP
+
+on:
+  pull_request_target:
+    types: [opened]
+    paths:
+      - "ensips/**.md"
+
+permissions:
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check for existing welcome comment
+        id: check
+        run: |
+          EXISTING=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq '[.[] | select(.user.login == "github-actions[bot]") | select(.body | contains("Thanks for submitting an ENSIP"))] | length')
+
+          if [ "$EXISTING" -gt "0" ]; then
+            echo "already_welcomed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_welcomed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post welcome comment
+        if: steps.check.outputs.already_welcomed == 'false'
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --body "$(cat <<'EOF'
+          Thanks for submitting an ENSIP. An editor will be along to review your proposal and assign it a permanent number using `/assign-ensip`.
+
+          In the meantime, please make sure your proposal follows the [submission checklist](https://github.com/ensdomains/ensips#submission-checklist). We're glad you're here.
+          EOF
+          )"
