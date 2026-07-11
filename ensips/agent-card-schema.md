@@ -9,7 +9,7 @@ ensip:
 track: Ecosystem
 ---
 
-# ENSIP-27: Agent Card Schema
+# ENSIP-X: Agent Card Schema
 
 ## Abstract
 
@@ -52,7 +52,7 @@ where `base-url` is the value of the `agent-endpoint[mcp]` or `agent-endpoint[a2
 text record, or the root of any agent gateway domain. This is the canonical path
 registered by [A2A v0.3.0](https://a2a-protocol.org/v0.3.0/specification/) (the path
 moved from `/.well-known/agent.json` to `/.well-known/agent-card.json` following IANA
-feedback); reusing it keeps ENSIP-27 cards co-located and discoverable by A2A clients.
+feedback); reusing it keeps ENSIP-X cards co-located and discoverable by A2A clients.
 
 A gateway MAY additionally serve the card at the legacy path
 `{base-url}/.well-known/agent.json` (A2A ≤ v0.2.x) as a compatibility alias. When it
@@ -99,11 +99,11 @@ The resource MUST be served over HTTPS and MUST return `Content-Type: applicatio
 `/.well-known/agent-card.json` is also the canonical serving path for [A2A protocol agent
 cards](https://a2a-protocol.org/v0.3.0/specification/) as of v0.3.0 (the earlier
 `/.well-known/agent.json` is A2A ≤ v0.2.x), whose schema is byte-compatible with the
-required fields above — reuse of the path is deliberate and maximises interop. Two fields, however, carry ENSIP-27-specific semantics, and a client
+required fields above — reuse of the path is deliberate and maximises interop. Two fields, however, carry ENSIP-X-specific semantics, and a client
 MUST NOT act on them without first confirming which document class it holds:
 
-- **`schema_version` is the ENSIP-27 discriminator.** A document carrying
-  `protocolVersion` (and no `schema_version`) is an A2A agent card, not an ENSIP-27
+- **`schema_version` is the ENSIP-X discriminator.** A document carrying
+  `protocolVersion` (and no `schema_version`) is an A2A agent card, not an ENSIP-X
   card. A conforming client MUST check `schema_version` before reading `url`.
 - **In this schema, top-level `url` is the agent's MCP endpoint.** In A2A the same key
   is the JSON-RPC endpoint — same key, same type, different transport. A conforming
