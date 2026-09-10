@@ -1,0 +1,347 @@
+---
+description: Standardized schema for the agent card document served at /.well-known/agent-card.json
+contributors:
+  - dinamic.eth
+  - babyblueviper1
+ensip:
+  created: '2026-05-19'
+  status: draft
+track: Ecosystem
+---
+
+# ENSIP-X: Agent Card Schema
+
+## Abstract
+
+This ENSIP defines the schema for the agent card document — a JSON resource served at
+`/.well-known/agent-card.json` — that describes an AI agent's capabilities, MCP endpoint,
+authentication requirements, on-chain identity, input provenance configuration, and
+optional pointers for independently verifying the agent's output.
+ENSIP-26 defines how to discover an agent card via ENS text records;
+this ENSIP defines what the card contains.
+
+## Motivation
+
+ENSIP-26 standardises `agent-endpoint[mcp]` and `agent-endpoint[a2a]` as text record
+keys for agent discovery. It intentionally leaves the format of the agent card document
+open for future standardisation. Without a shared schema, every gateway invents its own
+format and clients cannot parse agent cards interoperably.
+
+The `/.well-known/` path convention (RFC 8615) is already used by multiple agent
+frameworks as the natural location for service metadata. Standardising the document
+served there completes the discovery chain:
+
+```
+ENS name
+  → agent-endpoint[mcp] text record   (ENSIP-26)
+  → /.well-known/agent-card.json       (this ENSIP)
+  → mcp endpoint + capabilities + identity + verifiable provenance
+```
+
+## Specification
+
+### Discovery path
+
+An agent card MUST be served at:
+
+```
+{base-url}/.well-known/agent-card.json
+```
+
+where `base-url` is the value of the `agent-endpoint[mcp]` or `agent-endpoint[a2a]`
+text record, or the root of any agent gateway domain. This is the canonical path
+registered by [A2A v0.3.0](https://a2a-protocol.org/v0.3.0/specification/) (the path
+moved from `/.well-known/agent.json` to `/.well-known/agent-card.json` following IANA
+feedback); reusing it keeps ENSIP-X cards co-located and discoverable by A2A clients.
+
+A gateway MAY additionally serve the card at the legacy path
+`{base-url}/.well-known/agent.json` (A2A ≤ v0.2.x) as a compatibility alias. When it
+does, `agent.json` is a legacy alias only — `agent-card.json` is the canonical resource,
+and both paths MUST return a byte-identical document. Clients SHOULD request
+`agent-card.json` first and MAY fall back to `agent.json`.
+
+The resource MUST be served over HTTPS and MUST return `Content-Type: application/json`.
+
+### Required fields
+
+```json
+{
+  "schema_version": "0.0.1",
+  "name":           "string — human-readable agent name",
+  "url":            "string — fully-qualified MCP endpoint URL",
+  "provider": {
+    "organization": "string",
+    "url":          "string"
+  },
+  "version":     "string — semver",
+  "capabilities": {
+    "streaming":              "boolean",
+    "pushNotifications":      "boolean",
+    "stateTransitionHistory": "boolean"
+  },
+  "authentication": {
+    "schemes": ["Bearer"]
+  },
+  "skills": [
+    {
+      "id":          "string",
+      "name":        "string",
+      "description": "string",
+      "tags":        ["string"],
+      "examples":    ["string"]
+    }
+  ]
+}
+```
+
+### Document discrimination (A2A interoperability)
+
+`/.well-known/agent-card.json` is also the canonical serving path for [A2A protocol agent
+cards](https://a2a-protocol.org/v0.3.0/specification/) as of v0.3.0 (the earlier
+`/.well-known/agent.json` is A2A ≤ v0.2.x), whose schema is byte-compatible with the
+required fields above — reuse of the path is deliberate and maximises interop. Two fields, however, carry ENSIP-X-specific semantics, and a client
+MUST NOT act on them without first confirming which document class it holds:
+
+- **`schema_version` is the ENSIP-X discriminator.** A document carrying
+  `protocolVersion` (and no `schema_version`) is an A2A agent card, not an ENSIP-X
+  card. A conforming client MUST check `schema_version` before reading `url`.
+- **In this schema, top-level `url` is the agent's MCP endpoint.** In A2A the same key
+  is the JSON-RPC endpoint — same key, same type, different transport. A conforming
+  client MUST NOT infer the transport from the key alone.
+
+The failure mode this rule prevents is the silent one: the document parses, the client
+speaks the wrong protocol to the endpoint, and the error surfaces two layers from its
+cause. Agents exposing more than one transport SHOULD additionally populate the optional
+`supported_interfaces` array (below), which names each transport explicitly and removes
+the key collision entirely.
+
+### Optional fields
+
+| Field | Type | Description |
+|---|---|---|
+| `description` | string | Human-readable agent description |
+| `inputSources` | string[] | Declared input origin scope (e.g. `["user", "system"]`) |
+| `trustScope` | object | A2A trust config — `{ transitive: bool, maxDepth: int, capabilities: string[] }` |
+| `supported_interfaces` | object[] | Explicit multi-transport list — `[{ protocol: "mcp"\|"a2a"\|"rest", url, protocol_version }]`. When present, disambiguates transports without relying on the top-level `url`. |
+| `sanitizationSpec` | string | IPFS URI of the input sanitization pipeline spec (WYRIWE input-provenance commitment) |
+| `erc8004` | object | On-chain agent identity anchor — `{ registry: address, agentId: string }` |
+| `trustEndpoints` | object | Pointers for independently verifying the agent's *output* — `{ verifyProof: url, independentNodes: url[], selfHostVerifier: string }` |
+
+### The `supported_interfaces` field
+
+When an agent exposes more than one transport, `supported_interfaces` carries each one
+explicitly, so a client never has to guess the protocol behind a bare `url`:
+
+```json
+"supported_interfaces": [
+  { "protocol": "mcp", "url": "https://gateway.example/agent/…/mcp", "protocol_version": "2025-06-18" },
+  { "protocol": "a2a", "url": "https://gateway.example/agent/…/a2a", "protocol_version": "0.3" }
+]
+```
+
+One card, many transports, no key collision — MCP and A2A both first-class. (Prior art:
+a live one-card-many-transports example is served at
+`https://api.babyblueviper.com/.well-known/agent-card.json`, with
+`/.well-known/agent.json` kept as a v0.2.x compatibility alias.)
+
+### The `erc8004` identity field
+
+When present, `erc8004` links the agent card to a verifiable on-chain identity
+registered in an ERC-8004 agent identity registry:
+
+```json
+"erc8004": {
+  "registry": "0xe61f5a6783ae09949b9a1b6821b68f89c0d7bb2d",
+  "agentId":  "5"
+}
+```
+
+Verifiers SHOULD use this field to confirm the agent's existence and ownership
+without trusting the gateway:
+
+```solidity
+registry.ownerOf(agentId)        // confirms agent exists
+registry.getAgentWallet(agentId) // hot wallet for A2A signature verification
+registry.bindingOf(agentId)      // (sourceCollection, sourceTokenId)
+```
+
+The `erc8004` field is the bridge between the ENS discovery layer (ENSIP-26),
+the verification layer (ENSIP-25), and the on-chain identity layer (ERC-8004).
+
+### The `sanitizationSpec` field
+
+`sanitizationSpec` is an IPFS URI pointing to the specification of the input
+sanitization pipeline applied before the model receives the input. When the
+identity sentinel is used (no sanitization), the value MUST be the URI of the
+identity sentinel specification — **absence is not equivalent to the sentinel**. Absence
+claims nothing; the identity sentinel claims, verifiably, that no transformation was
+applied. That asymmetry is what makes the commitment checkable rather than assumed.
+
+This field is part of the WYRIWE input-provenance commitment
+([ERC-8299](https://github.com/ethereum/ERCs/pull/1810)) and enables independent
+verification of the transformation applied between raw input and model input. A
+conformance set — a valid pipeline spec, the identity sentinel, and a tampered spec
+that MUST fail verification — is provided as reference vectors so
+independent implementations converge on bytes, not prose. A reference vector set is published at [ensip27-sanitizationspec-vectors](https://github.com/babyblueviper1/ensip27-sanitizationspec-vectors) — three vectors (`valid_pipeline` passes, `identity_sentinel` passes, `tampered` MUST fail), encoded CIDv1-raw + sha2-256 so each CID is a pure `sha256` of the exact bytes and any party re-derives them with stdlib alone (no IPFS node); CI recomputes all three on every push. To be vendored into `assets/` once the ENSIP number is assigned.
+
+### The `trustEndpoints` field
+
+Where `erc8004` anchors *who* the agent is and `sanitizationSpec` commits *what went
+in*, `trustEndpoints` lets a client independently check *what comes out* — without
+trusting the gateway or the agent:
+
+```json
+"trustEndpoints": {
+  "verifyProof":      "https://gateway.ensub.org/agent/{registry}/{agentId}/verify",
+  "independentNodes": ["https://gateway.gen-plasma.com", "https://ccip-router-production.up.railway.app"],
+  "selfHostVerifier": "npm:ccip-router"
+}
+```
+
+- **`verifyProof`** — an endpoint returning a signed, recomputable proof for a given
+  output or `inputHash` (e.g. a WYRIWE commitment), checkable offline against the
+  agent's published key with no further call to the gateway.
+- **`independentNodes`** — peer nodes that re-derive the same verdict from their *own*
+  reads (non-self-attested), so a claim can be confirmed against a node the agent does
+  not control.
+- **`selfHostVerifier`** — a package a client can run to recompute the proofs itself,
+  trusting no endpoint at all.
+
+The field is optional and zero-cost when absent; when present it makes the discovery
+chain terminate at something recomputable rather than asserted. (Prior art: a live
+`trustEndpoints`-equivalent block has been served since June 2026 at the URL above.)
+
+### Full example
+
+```json
+{
+  "schema_version": "0.0.1",
+  "name":           "Wizgob NFT #860",
+  "description":    "Goblinarinos Agents",
+  "url":            "https://gateway.ensub.org/agent/0xe61f.../5/mcp",
+  "provider": {
+    "organization": "dinamic.eth",
+    "url":          "https://dinamic.eth.limo"
+  },
+  "version":        "1.0.0",
+  "capabilities": {
+    "streaming":              false,
+    "pushNotifications":      false,
+    "stateTransitionHistory": false
+  },
+  "authentication": {
+    "schemes": ["Bearer"]
+  },
+  "defaultInputModes":  ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "inputSources":    ["user", "system"],
+  "supported_interfaces": [
+    { "protocol": "mcp", "url": "https://gateway.ensub.org/agent/0xe61f.../5/mcp", "protocol_version": "2025-06-18" }
+  ],
+  "trustScope": {
+    "transitive": false,
+    "maxDepth":   0,
+    "capabilities": []
+  },
+  "sanitizationSpec": "ipfs://QmaYUmRWD33jsmvH9TkMY1TwDgPcZ2zcx5S9BAqCqbUdTr",
+  "erc8004": {
+    "registry": "0xe61f5a6783ae09949b9a1b6821b68f89c0d7bb2d",
+    "agentId":  "5"
+  },
+  "trustEndpoints": {
+    "verifyProof":      "https://gateway.ensub.org/agent/verify",
+    "independentNodes": ["https://gateway.gen-plasma.com"],
+    "selfHostVerifier": "npm:ccip-router"
+  },
+  "skills": [
+    {
+      "id":          "chat",
+      "name":        "Chat",
+      "description": "Chat with Wizgob NFT #860",
+      "tags":        ["chat", "conversation"],
+      "examples":    ["Hello, what can you do?"]
+    }
+  ]
+}
+```
+
+Live: `GET https://gateway.ensub.org/agent/0xe61f5a6783ae09949b9a1b6821b68f89c0d7bb2d/5/.well-known/agent-card.json`
+
+## Rationale
+
+**Why `/.well-known/agent-card.json` and not a custom path?**
+RFC 8615 reserves `/.well-known/` for service metadata, and `agent-card.json` is A2A's
+canonical card path as of v0.3.0 (moved from `agent.json` following IANA feedback).
+Co-locating on it maximises interop and avoids fragmentation; the legacy `agent.json`
+path is retained only as an optional byte-identical compatibility alias for A2A ≤ v0.2.x
+clients, never as the canonical location.
+
+**Why discriminate from A2A rather than fork the path?**
+Sharing the path with A2A maximises interop — the required fields are byte-compatible by
+design. The cost is a key collision on `url`; the `schema_version` discriminator rule
+(and the optional `supported_interfaces` array) resolves it so both document classes
+coexist on the same path without silent protocol mismatch.
+
+**Why a separate ENSIP from ENSIP-26?**
+ENSIP-26 explicitly defers schema standardisation to future ENSIPs. This ENSIP is
+that future — it adds schema without changing the discovery mechanism.
+
+**Why `erc8004` as an optional field rather than required?**
+Not every agent will have an on-chain ERC-8004 identity. The field is optional to
+allow offchain-only agents to conform to the schema. When present it SHOULD be treated
+as the authoritative identity anchor.
+
+**Why an optional `trustEndpoints` pointer?**
+`erc8004` and `sanitizationSpec` let a client check who the agent is and what it
+received. `trustEndpoints` extends the same recompute-don't-trust discipline to the
+agent's *output*, so the discovery chain terminates at something a third party can
+verify independently rather than at the gateway's word — without imposing any cost on
+agents that don't offer it.
+
+**Relationship to ENSIP-25**
+[ENSIP-25](https://github.com/ensdomains/ensips/blob/main/ensips/25.md) defines how to verify an ENS name's association with an agent registry entry.
+The `erc8004` field in the agent card is the discovery complement — it tells a client
+where to find the on-chain identity to verify against.
+
+This ENSIP completes the stack alongside [ENSIP-26](https://github.com/ensdomains/ensips/blob/main/ensips/26.md) (discovery layer),
+[ERC-8004](https://ethereum-magicians.org/t/erc-8004-agent-nft-identity-registry) (on-chain identity registry),
+[ERC-8217](https://ethereum-magicians.org/t/add-erc-8217-agent-nft-identity-bindings/28339) (agent NFT identity bindings),
+[ERC-8299](https://github.com/ethereum/ERCs/pull/1810) (WYRIWE input provenance),
+and [RFC 8615](https://www.rfc-editor.org/rfc/rfc8615) (Well-Known URIs).
+
+## Backwards Compatibility
+
+Clients unaware of this ENSIP will receive the agent card as an unstructured JSON
+blob. Unknown fields are ignored. Gateways that serve the card only at the legacy
+`/.well-known/agent.json` path (A2A ≤ v0.2.x) SHOULD add `/.well-known/agent-card.json`
+as the canonical location while keeping `agent.json` as a byte-identical alias; clients
+SHOULD request `agent-card.json` first and fall back to `agent.json`. Existing gateways
+serving a subset of the required fields will continue to function — clients SHOULD treat
+missing optional fields as absent rather than erroring. A2A clients that do not
+recognise `schema_version` will still parse the byte-compatible required fields; the
+discrimination rule exists to protect clients that act on `url`.
+
+## Security Considerations
+
+**Gateway trust**: The agent card is served by the gateway. Clients MUST NOT trust
+the `erc8004` field without independently verifying the claimed identity on-chain.
+
+**HTTPS required**: The agent card MUST be served over HTTPS. Clients MUST reject
+agent cards served over plain HTTP.
+
+**`sanitizationSpec` verification**: Clients that verify input provenance MUST fetch
+the spec at the declared IPFS URI and independently compute the pipeline hash rather
+than trusting the gateway's attestation.
+
+**`trustEndpoints` are pointers, not proofs**: A client MUST verify the proofs returned
+by these endpoints — check the signature, recompute the commitment — rather than
+trusting the endpoint's response. `independentNodes` exist precisely so a verdict can be
+confirmed against a node the agent does not control; a client SHOULD confirm agreement
+across at least one independent node before acting on a high-value claim.
+
+**Protocol confusion**: A client MUST determine document class via `schema_version`
+before dereferencing `url`, to avoid speaking MCP to an A2A endpoint or vice versa.
+
+## Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
