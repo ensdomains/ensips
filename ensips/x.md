@@ -40,7 +40,7 @@ function registerMultichainToken(string calldata name, string calldata symbol,
     external returns (bytes32 multichainTokenHash);
 function getMultichainToken(bytes32 multichainTokenHash)
     external view returns (Token memory token);
-event MultichainTokenRegistered(bytes32 indexed multichainTokenHash, uint256 registrationBlock);
+event MultichainTokenRegistered(bytes32 indexed multichainTokenHash, string name, string symbol, bytes[] contracts, uint256[] standards, uint256[] ids);
 error TokenNotFound(bytes32 tokenHash);
 ```
 
@@ -54,7 +54,7 @@ Encode five arguments of types `(string,string,bytes[],uint256[],uint256[])`, no
 
 Registries MUST allow permissionless, fee-free registration; preserve raw strings (including empty/invalid UTF-8), array order, and duplicates; and require equal, nonzero array lengths. Each index identifies one representation. Registration order is not preference order.
 
-First registration MUST store arguments and `block.number`, emit the event, and return the hash. Duplicates MUST return it without mutation or another event. Existence MUST support block zero; unknown getters MUST revert `TokenNotFound`. Invalid input MUST revert atomically. Registries MUST be immutable, without ownership, administration, upgrades, mutable validation, privileged registration, editing, deletion, replacement, or transfer. Registration requires no external calls.
+First registration MUST store arguments and `block.number`, emit the complete inputs in `MultichainTokenRegistered`, and return the hash. Only `multichainTokenHash` MUST be indexed; both strings and all arrays MUST remain unindexed and reproduce the exact registration arguments so indexers can reconstruct the snapshot and recompute its hash from the log. The log supplies the registration block; `Token.registrationBlock` MUST retain it in storage and the getter. Duplicates MUST return it without mutation or another event. Existence MUST support block zero; unknown getters MUST revert `TokenNotFound`. Invalid input MUST revert atomically. Registries MUST be immutable, without ownership, administration, upgrades, mutable validation, privileged registration, editing, deletion, replacement, or transfer. Registration requires no external calls.
 
 ### Representation validation
 
