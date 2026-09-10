@@ -1,0 +1,10 @@
+{
+  "checks": "passed",
+  "invalid_payloads_rejected": 24,
+  "ether_snapshot_hash": "0xf332c247f877c8ea23f819db95b69763e5b0fea0939486567189146115119ce4",
+  "data_key": "payment-preference[0xf332c247f877c8ea23f819db95b69763e5b0fea0939486567189146115119ce4]",
+  "ethereum_arbitrum_value": "0x000100000101000001000002a4b100",
+  "base_ethereum_value": "0x000100000221050000010000010100",
+  "abi_encoding_bytes": 704,
+  "cross_checked": "eth_abi + eth_hash vs cast"
+}
