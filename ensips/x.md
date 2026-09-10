@@ -12,15 +12,15 @@ ensip:
 
 ## Abstract
 
-A sender who knows only an ENS name and token cannot determine the recipient's preferred chain.
-This ENSIP solves that gap with ordered per-token chain preferences in ENSIP-24 records, keyed by immutable multichain token snapshot hashes.
-These keys identify specific token snapshots without relying on ambiguous symbols.
+An ENS name and token alone do not tell a sender which chain the recipient prefers for payment.
+This proposal lets recipients publish ordered per-token chain preferences through ENSIP-24 records.
+Preferences are keyed by immutable multichain token snapshot hashes, identifying specific token representations without relying on ambiguous symbols.
 
 ## Motivation
 
-ENS supports chain-specific addresses, and ERC-7828 handles destinations with an explicitly supplied chain.
-Neither communicates the recipient's ordered chain preference when only the bare ENS name is known.
-Publishing per-token preferences lets senders consider suitable chains in the recipient's preferred order.
+ENS resolves chain-specific addresses, while ERC-7828 expresses destinations with an explicitly supplied chain.
+Neither tells a sender which chain the recipient prefers when the payment starts with a bare ENS name and a token.
+Per-token preferences fill this gap, letting senders consider suitable chains in the recipient's preferred order while respecting explicit sender choices.
 
 ## Specification
 
@@ -28,7 +28,12 @@ MUST, MUST NOT, SHOULD, and MAY are normative per RFC 2119 and RFC 8174.
 
 ### Registry
 
-The required nonpayable ABI is:
+Token symbols are neither unique nor sufficient to associate deployments across chains; a single contract address identifies only one chain-specific representation.
+The registry permits anyone to register an immutable snapshot grouping the representations asserted for a token and derives the `bytes32` fingerprint used in the ENSIP-24 `payment-preference[<multichainTokenHash>]` key.
+The canonical registry defined by this ENSIP will be deployed on Ethereum L1/mainnet (chain ID 1); clients MUST identify it by the mainnet address specified here.
+**Editorial note: canonical mainnet address pending deployment; replace this note with that address before finalization.**
+The current Sepolia (chain ID 11155111) registry at `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc` is the test/reference deployment, not the canonical production registry.
+The canonical registry MUST implement the following nonpayable registration and retrieval ABI and the hashing, validation, and immutability rules below:
 
 ```solidity
 struct Token {
@@ -41,9 +46,9 @@ struct Token {
 }
 function registerMultichainToken(string calldata name, string calldata symbol,
     bytes[] calldata contracts, uint256[] calldata standards, uint256[] calldata ids)
-    external returns (bytes32 multichainTokenHash);
-function getMultichainToken(bytes32 multichainTokenHash)
-    external view returns (Token memory token);
+    external returns (bytes32 tokenHash);
+function getMultichainToken(bytes32 tokenHash)
+    external view returns (Token memory);
 event MultichainTokenRegistered(bytes32 indexed multichainTokenHash, string name, string symbol, bytes[] contracts, uint256[] standards, uint256[] ids);
 error TokenNotFound(bytes32 tokenHash);
 ```
@@ -100,7 +105,7 @@ Clients MUST validate the entire payload before use: advance by `6+r`, enforce b
 
 Hashes fingerprint snapshots, not canonical enduring identities. Metadata, representation, ID, or ordering changes produce distinct snapshots without automatic supersession or aliasing. Clients MUST NOT transfer preferences between hashes. ENS owners must update keys deliberately.
 
-No global registry is designated. Clients MUST configure and verify immutable deployments, recompute snapshot hashes, authenticate the intended representation independently (including when several share a chain), and match candidate chains to it. Missing snapshots are unresolved; registration blocks and availability are deployment-specific.
+Clients MUST resolve production snapshots from the canonical Ethereum L1 registry identified above, verify its code conforms to this specification, and recompute snapshot hashes. A matching hash from another registry MUST NOT substitute for canonical registration: code or validation rules may differ even though the hash preimage excludes deployment details. Clients MUST authenticate the intended representation independently (including when several share a chain) and match candidate chains to it. Missing canonical snapshots are unresolved.
 
 Clients MUST skip chains absent from the snapshot and SHOULD consider usable chains in preference order subject to sender constraints. Explicit sender choices, including ERC-7828 chains, MUST NOT be overridden. Empty/missing records, unsupported ENSIP-24, resolver errors, and unusable results supply no preference, prohibition, authorization, or default. Clients SHOULD distinguish failures diagnostically. With no suitable candidate, require explicit alternatives or report no route; fallback MUST NOT be presented as recipient preference.
 
