@@ -12,11 +12,15 @@ ensip:
 
 ## Abstract
 
-A sender who knows only an ENS name and token cannot determine which chain the recipient prefers. This ENSIP defines ordered per-token chain preferences in ENSIP-24 records, keyed by immutable multichain token snapshot hashes.
+A sender who knows only an ENS name and token cannot determine the recipient's preferred chain.
+This ENSIP solves that gap with ordered per-token chain preferences in ENSIP-24 records, keyed by immutable multichain token snapshot hashes.
+These keys identify specific token snapshots without relying on ambiguous symbols.
 
 ## Motivation
 
-ENS address resolution does not select a payment chain. Snapshot keys avoid ambiguous token symbols.
+ENS supports chain-specific addresses, and ERC-7828 handles destinations with an explicitly supplied chain.
+Neither communicates the recipient's ordered chain preference when only the bare ENS name is known.
+Publishing per-token preferences lets senders consider suitable chains in the recipient's preferred order.
 
 ## Specification
 
