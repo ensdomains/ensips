@@ -28,12 +28,13 @@ MUST, MUST NOT, SHOULD, and MAY are normative per RFC 2119 and RFC 8174.
 
 ### Registry
 
-Token symbols are neither unique nor sufficient to associate deployments across chains; a single contract address identifies only one chain-specific representation.
-The registry permits anyone to register an immutable snapshot grouping the representations asserted for a token and derives the `bytes32` fingerprint used in the ENSIP-24 `payment-preference[<multichainTokenHash>]` key.
-The canonical registry defined by this ENSIP will be deployed on Ethereum L1/mainnet (chain ID 1); clients MUST identify it by the mainnet address specified here.
-**Editorial note: canonical mainnet address pending deployment; replace this note with that address before finalization.**
-The current Sepolia (chain ID 11155111) registry at `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc` is the test/reference deployment, not the canonical production registry.
-The canonical registry MUST implement the following nonpayable registration and retrieval ABI and the hashing, validation, and immutability rules below:
+Tokens such as USDC are deployed on many chains, but no protocol-level identifier groups those deployments as one token. A name or symbol cannot provide that identity because anyone can reuse it, while a contract address identifies only one deployment.
+
+The Multichain Token Registry lets anyone register a name, symbol, and list of deployed contracts as an immutable snapshot. The registry hashes that snapshot to create the token fingerprint used in the ENSIP-24 `payment-preference[<multichainTokenHash>]` key. A token may have several fingerprints when registrations use different contract lists or metadata, and each fingerprint identifies only the snapshot from which it was created.
+
+The canonical registry will be deployed on Ethereum mainnet (chain ID 1), and clients MUST identify it by the address specified in this ENSIP. **Editorial note: add the canonical mainnet address before finalization.** The registry at `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc` on Sepolia (chain ID 11155111) is the test deployment.
+
+The registry MUST implement the following interface and the hashing, validation, and immutability rules below:
 
 ```solidity
 struct Token {
