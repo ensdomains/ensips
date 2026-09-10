@@ -25,7 +25,7 @@ This ENSIP lets recipients publish an ordered list of preferred chains for each 
 
 ## Specification
 
-MUST, MUST NOT, SHOULD, and MAY are normative per RFC 2119 and RFC 8174.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
 ### Registry
 
@@ -35,26 +35,43 @@ The Multichain Token Registry lets anyone register a name, symbol, and list of d
 
 Registration is not an endorsement. The registry does not check whether the name, symbol, or contract addresses are correct or belong to the same token, so anyone can create a false or misleading snapshot. Its purpose is only to create an immutable identifier from the submitted data; clients must establish authenticity independently.
 
-The canonical registry will be deployed on Ethereum mainnet (chain ID 1), and clients MUST identify it by the address specified in this ENSIP. **Editorial note: add the canonical mainnet address before finalization.** The registry at `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc` on Sepolia (chain ID 11155111) is the test deployment.
+The canonical registry will be deployed on Ethereum mainnet (chain ID 1), and clients MUST identify it by the address specified in this ENSIP. **Editorial note: add the canonical mainnet address before finalization.** The registry at `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc` on Sepolia (chain ID 11155111) is the test deployment ([verified source on Sepolia Etherscan](https://sepolia.etherscan.io/address/0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc#code)).
 
 The registry MUST implement the following interface and the hashing, validation, and immutability rules below:
 
 ```solidity
-struct Token {
-    string name;
-    string symbol;
-    bytes[] contracts;
-    uint256[] standards;
-    uint256[] ids;
-    uint256 registrationBlock;
+interface IMultichainTokenRegistry {
+    struct Token {
+        string name;
+        string symbol;
+        bytes[] contracts;
+        uint256[] standards;
+        uint256[] ids;
+        uint256 registrationBlock;
+    }
+
+    function registerMultichainToken(
+        string calldata name,
+        string calldata symbol,
+        bytes[] calldata contracts,
+        uint256[] calldata standards,
+        uint256[] calldata ids
+    ) external returns (bytes32 tokenHash);
+
+    function getMultichainToken(bytes32 tokenHash)
+        external view returns (Token memory);
+
+    event MultichainTokenRegistered(
+        bytes32 indexed multichainTokenHash,
+        string name,
+        string symbol,
+        bytes[] contracts,
+        uint256[] standards,
+        uint256[] ids
+    );
+
+    error TokenNotFound(bytes32 tokenHash);
 }
-function registerMultichainToken(string calldata name, string calldata symbol,
-    bytes[] calldata contracts, uint256[] calldata standards, uint256[] calldata ids)
-    external returns (bytes32 tokenHash);
-function getMultichainToken(bytes32 tokenHash)
-    external view returns (Token memory);
-event MultichainTokenRegistered(bytes32 indexed multichainTokenHash, string name, string symbol, bytes[] contracts, uint256[] standards, uint256[] ids);
-error TokenNotFound(bytes32 tokenHash);
 ```
 
 The hash MUST be exactly:
