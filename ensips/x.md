@@ -18,9 +18,10 @@ Preferences are keyed by immutable multichain token snapshot hashes, identifying
 
 ## Motivation
 
-ENS resolves chain-specific addresses, while ERC-7828 expresses destinations with an explicitly supplied chain.
-Neither tells a sender which chain the recipient prefers when the payment starts with a bare ENS name and a token.
-Per-token preferences fill this gap, letting senders consider suitable chains in the recipient's preferred order while respecting explicit sender choices.
+ENS can provide a recipient's address on a chosen chain, but the sender must first decide which chain to use.
+ERC-7828 makes that choice explicit in a destination such as `alice.eth@ethereum`; it does not supply the choice when the sender knows only `alice.eth`.
+The recipient's preferred chain may also depend on the token: they might prefer USDC on Base and ETH on Ethereum.
+This ENSIP lets recipients publish an ordered list of preferred chains for each token, giving senders that information before they choose a chain and resolve the receiving address.
 
 ## Specification
 
