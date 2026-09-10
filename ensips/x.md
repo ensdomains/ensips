@@ -88,29 +88,29 @@ The ABI type of every standard identifier is permanently `uint256`; implementati
 
 | Value | Meaning | ID rule | Address rule |
 | --- | --- | --- | --- |
-| `0` | Native asset used for the chain's native value transfers | MUST be zero | ERC-7930 Chain Identifier: empty address |
+| `0` | Native asset used for the chain's native value transfers | MUST be zero | ERC-7930 Interoperable Address: 20-byte all-zero address |
 | `20` | ERC-20 | MUST be zero | Nonempty contract address |
 | `721` | ERC-721 | Token ID, including zero | Nonempty contract address |
 | `6909` | ERC-6909 | Token ID, including zero | Nonempty contract address |
 | `1155` | ERC-1155 | Token ID, including zero | Nonempty contract address |
 
-Standard `0` is an explicit extension defined by this proposal, not an ERC number. Although the array is named `contracts`, its native entries identify chains rather than contracts. Native ETH on Ethereum is `(0x00010000010100, 0, 0)`; native ETH on Arbitrum One is `(0x0001000002a4b100, 0, 0)`. A zero EVM address encoded with address length 20 is not a native entry. Wrapped ETH is a separate ERC-20 representation with its actual contract address, standard `20`, and ID `0`. Grouping different chains' native currencies in one snapshot does not establish economic equivalence.
+Standard `0` is an explicit extension defined by this proposal, not an ERC number. Although the array is named `contracts`, its native entries use a chain-specific zero address as the native-asset sentinel. Native ETH on Ethereum is `(0x000100000101140000000000000000000000000000000000000000, 0, 0)`; native ETH on Arbitrum One is `(0x0001000002a4b1140000000000000000000000000000000000000000, 0, 0)`. Native entries MUST contain exactly 20 all-zero address bytes and standard `0`; an empty address component is invalid for registration. The zero address is an asset sentinel, not a payment recipient. Wrapped ETH is a separate ERC-20 representation with its actual contract address, standard `20`, and ID `0`. Grouping different chains' native currencies in one snapshot does not establish economic equivalence.
 
 The five assigned meanings MUST NOT be redefined. Other nonzero `uint256` values are reserved for extensions and accepted by the registry as opaque standards with a nonempty address and any `uint256` ID. A future specification MUST assign an unused permanent value and define its address and ID semantics; numeric resemblance to another ERC alone is not an assignment. Future standards without token IDs MUST require ID zero. Since an immutable registry cannot recognize later assignments, clients supporting an extension MUST enforce its additional validation, including the zero-ID rule. Clients MUST NOT route through unknown standard identifiers or infer token methods from them. New assignments do not change existing encodings or hashes.
 
 ### Registration address validation
 
-Each element of `contracts` MUST be one complete binary [ERC-7930](https://eips.ethereum.org/EIPS/eip-7930) version 1 value, with an explicit chain reference. Ordinary 20-byte EVM addresses MUST be wrapped in this representation; raw EVM addresses are not accepted.
+Each element of `contracts` MUST be one complete binary [ERC-7930](https://eips.ethereum.org/EIPS/eip-7930) version 1 Interoperable Address, with an explicit chain reference and nonempty address component. Ordinary 20-byte EVM addresses MUST be wrapped in this representation; raw EVM addresses are not accepted.
 
 The registry MUST enforce:
 
 1. At least six bytes, with the first two bytes exactly `0x0001`.
 2. Two chain-type bytes, followed by a one-byte chain-reference length `r` greater than zero, then exactly `r` chain-reference bytes.
 3. One address-length byte `a` at offset `5 + r`, followed by exactly `a` address bytes. Total element length MUST equal `6 + r + a`; truncation and trailing bytes are invalid.
-4. For native entries, `a` MUST be zero and the ID MUST be zero. For every other standard, `a` MUST be greater than zero. For ERC-20 the ID MUST also be zero.
-5. For EIP-155 chain type `0x0000`, `r` MUST be between 1 and 32 inclusive and the first reference byte MUST be nonzero. This profile uses positive chain IDs in minimal big-endian encoding. Nonnative EIP-155 addresses MUST be exactly 20 bytes. Chain ID zero, chainless values, leading-zero references, and other EVM address lengths are outside this registry profile.
+4. For native entries in this registry profile, `a` MUST be 20, all 20 address bytes MUST be zero, and the ID MUST be zero. For every other standard, `a` MUST be greater than zero. For ERC-20 the ID MUST also be zero.
+5. For EIP-155 chain type `0x0000`, `r` MUST be between 1 and 32 inclusive and the first reference byte MUST be nonzero. This profile uses positive chain IDs in minimal big-endian encoding. All EIP-155 addresses MUST be exactly 20 bytes. Chain ID zero, chainless values, leading-zero references, and other EVM address lengths are outside this registry profile.
 
-Other chain types receive envelope validation only. Registrants SHOULD supply canonical address and reference encodings for their namespace; clients MUST validate the applicable namespace profile before use. The registry does not validate the existence of chains, bytecode, supported interfaces, issuer claims, or economic equivalence. A structurally valid zero contract address can be stored but is not thereby safe to use. Unknown ERC-7930 versions MUST be rejected, even if their high version bit indicates compatible framing. Supporting a new binary version requires a separately specified registry implementation; this registry cannot be upgraded.
+Other chain types receive envelope validation and the native/non-native address rules above. Registrants SHOULD supply canonical address and reference encodings for their namespace; clients MUST validate the applicable namespace profile before use. The registry does not validate the existence of chains, bytecode, supported interfaces, issuer claims, or economic equivalence. A structurally valid zero contract address can be stored but is not thereby safe to use. Unknown ERC-7930 versions MUST be rejected, even if their high version bit indicates compatible framing. Supporting a new binary version requires a separately specified registry implementation; this registry cannot be upgraded.
 
 ### ENSIP-24 record
 
@@ -121,6 +121,8 @@ payment-preference[<multichainTokenHash>]
 ```
 
 `<multichainTokenHash>` MUST be lowercase hexadecimal with a `0x` prefix and exactly 64 hexadecimal digits, including leading zeroes. The square brackets are literal; there are no spaces. The key is case-sensitive. It is a data record, not a text record. No symbol-keyed fallback is defined.
+
+Registration addresses and preference values have different roles: native asset entries carry a 20-byte zero address, while preference entries carry no address.
 
 The returned `bytes` payload is `C1 || C2 || ... || Cn`, where each `Ci` is a complete ERC-7930 version 1 Chain Identifier, including its zero address-length byte. There is no outer array, ABI encoding, count, delimiter, length prefix, or textual hex wrapper inside the payload. The first chain is the first preference, the second is the second preference, and so on. Writers MUST produce canonical values under the applicable namespace profile.
 
@@ -161,7 +163,7 @@ For an independently authenticated USDC snapshot covering Base and Ethereum, the
 0x000100000221050000010000010100
 ```
 
-For `name = "Ether"`, `symbol = "ETH"`, `contracts = [hex"00010000010100", hex"0001000002a4b100"]`, `standards = [uint256(0), uint256(0)]`, and `ids = [uint256(0), uint256(0)]`, calculate the hash of the five arguments and use its lowercase hex in the key. The value for Ethereum then Arbitrum is:
+For `name = "Ether"`, `symbol = "ETH"`, `contracts = [hex"000100000101140000000000000000000000000000000000000000", hex"0001000002a4b1140000000000000000000000000000000000000000"]`, `standards = [uint256(0), uint256(0)]`, and `ids = [uint256(0), uint256(0)]`, calculate the hash of the five arguments and use its lowercase hex in the key. The value for Ethereum then Arbitrum is:
 
 ```text
 0x000100000101000001000002a4b100
@@ -171,11 +173,11 @@ The following Foundry `cast` commands reproduce the hash without a transaction. 
 
 ```sh
 encoded=$(cast abi-encode 'f(string,string,bytes[],uint256[],uint256[])' \
-  Ether ETH '[0x00010000010100,0x0001000002a4b100]' '[0,0]' '[0,0]')
+  Ether ETH '[0x000100000101140000000000000000000000000000000000000000,0x0001000002a4b1140000000000000000000000000000000000000000]' '[0,0]' '[0,0]')
 cast keccak "$encoded"
 ```
 
-The resulting hash is `0xf332c247f877c8ea23f819db95b69763e5b0fea0939486567189146115119ce4`; its key is `payment-preference[0xf332c247f877c8ea23f819db95b69763e5b0fea0939486567189146115119ce4]`. The ABI preimage is 704 bytes.
+The resulting hash is `0x548bc6fa7546b316406d484a72d6376ec9d6e7475f45624553fb5a35778868ca`; its key is `payment-preference[0x548bc6fa7546b316406d484a72d6376ec9d6e7475f45624553fb5a35778868ca]`. The ABI preimage is 704 bytes.
 
 A single ERC-20 on Ethereum at illustrative address `0x1111111111111111111111111111111111111111` uses `contracts = [hex"000100000101141111111111111111111111111111111111111111"]`, `standards = [uint256(20)]`, and `ids = [uint256(0)]`. A bare address, empty arrays, or ID 1 for that ERC-20 is invalid.
 
@@ -183,7 +185,7 @@ A single ERC-20 on Ethereum at illustrative address `0x1111111111111111111111111
 
 A snapshot fingerprint avoids symbol collisions without assigning an administrator the power to decide enduring token identity. Including names and symbols binds the exact advertised metadata; changing them deliberately changes the fingerprint. Ordered registrations remain distinct snapshots, avoiding expensive on-chain sorting and disputed canonical token groupings.
 
-Fixed-width numeric standards permit future assignments without enum-width or ordinal changes. An explicit native standard distinguishes native value from ERC-20 transfers and avoids special fake contract addresses. Version 1 envelope validation makes the immutable implementation small, while clients remain responsible for namespace semantics and authenticity.
+Fixed-width numeric standards permit future assignments without enum-width or ordinal changes. An explicit native standard distinguishes native value from ERC-20 transfers while the chain-specific zero address supplies the native-asset sentinel. Standard `0` determines native transfer semantics; the zero address alone does not. Version 1 envelope validation makes the immutable implementation small, while clients remain responsible for namespace semantics and authenticity.
 
 ENSIP-24 carries binary preferences efficiently. Self-delimiting ERC-7930 Chain Identifiers make an additional list encoding unnecessary. Rejecting the full record on parse failure prevents a malformed suffix from silently changing the apparent preference order.
 

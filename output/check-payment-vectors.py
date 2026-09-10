@@ -49,16 +49,27 @@ for data in malformed:
         pass
     else:
         raise AssertionError(data.hex())
-args = ['Ether','ETH',[eth,arb],[0,0],[0,0]]
+native_eth = eth[:-1] + bytes([20]) + bytes(20)
+native_arb = arb[:-1] + bytes([20]) + bytes(20)
+# Full native addresses are invalid in a chain-preference payload.
+for address in [native_eth, native_arb]:
+    try:
+        parse(address)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('native address accepted as chain preference')
+args = ['Ether','ETH',[native_eth,native_arb],[0,0],[0,0]]
 encoded = encode(['string','string','bytes[]','uint256[]','uint256[]'],args)
 hash_hex = '0x'+keccak(encoded).hex()
 cast_encoded = subprocess.check_output(['cast','abi-encode','f(string,string,bytes[],uint256[],uint256[])',
-    'Ether','ETH','[0x'+eth.hex()+',0x'+arb.hex()+']','[0,0]','[0,0]'],text=True).strip()
+    'Ether','ETH','[0x'+native_eth.hex()+',0x'+native_arb.hex()+']','[0,0]','[0,0]'],text=True).strip()
 assert cast_encoded == '0x'+encoded.hex()
 assert subprocess.check_output(['cast','keccak',cast_encoded],text=True).strip() == hash_hex
 wrong_tuple = encode(['(string,string,bytes[],uint256[],uint256[])'],[args])
 assert keccak(wrong_tuple) != keccak(encoded)
 print(json.dumps({'checks':'passed','invalid_payloads_rejected':len(malformed),
+ 'native_contracts':['0x'+native_eth.hex(),'0x'+native_arb.hex()],
  'ether_snapshot_hash':hash_hex,'data_key':f'payment-preference[{hash_hex}]',
  'ethereum_arbitrum_value':'0x'+(eth+arb).hex(),'base_ethereum_value':'0x'+(base+eth).hex(),
  'abi_encoding_bytes':len(encoded),'cross_checked':'eth_abi + eth_hash vs cast'},indent=2))
