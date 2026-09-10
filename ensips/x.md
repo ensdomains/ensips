@@ -37,7 +37,9 @@ Registration is not an endorsement. The registry does not check whether the name
 
 The canonical registry will be deployed on Ethereum mainnet (chain ID 1), and clients MUST identify it by the address specified in this ENSIP. **Editorial note: add the canonical mainnet address before finalization.** The registry at `0x33bE57E9541ABeaF3bab59C362e1904804de66e3` on Sepolia (chain ID 11155111) is the test deployment ([verified source on Sepolia Etherscan](https://sepolia.etherscan.io/address/0x33bE57E9541ABeaF3bab59C362e1904804de66e3#code)). Prior Sepolia deployments `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc`, `0x1e60cA458299a6a9B9Be846412092b512A4216bd`, and `0xA06FA95C22e1CC59B762f49345D43eBa266F1699` are superseded.
 
-The registry MUST implement the following interface and the hashing, validation, and immutability rules below:
+The contract enforces the registration rules below: nonempty symbols, array lengths, representation framing and the listed standard/ID checks, exact hashing and storage, duplicate handling, and event/getter behavior. Authenticity, display handling, namespace semantics beyond those checks, and preference parsing and routing are specification/client responsibilities; the registry does not enforce them.
+
+The registry MUST implement the following interface and the contract-enforced registration rules below:
 
 ```solidity
 interface IMultichainTokenRegistry {
@@ -74,6 +76,8 @@ interface IMultichainTokenRegistry {
 }
 ```
 
+### Contract-enforced registration rules
+
 The hash MUST be exactly:
 
 ```solidity
@@ -82,11 +86,11 @@ keccak256(abi.encode(name, symbol, contracts, standards, ids))
 
 Encode five arguments of types `(string,string,bytes[],uint256[],uint256[])`, not one tuple or packed data; exclude selector, block, caller, and deployment details. Canonically re-encode decoded arguments; use Keccak-256, not SHA3-256.
 
-Registries MUST allow permissionless, fee-free registration; require `bytes(symbol).length > 0` before registration; preserve raw names (including empty names) and nonempty symbols, including embedded zero bytes and invalid UTF-8, array order, and duplicates; and require equal, nonzero array lengths. Each index identifies one representation. Registration order is not preference order.
+Registries MUST allow permissionless, fee-free registration; require `bytes(symbol).length > 0` before registration; preserve raw names (including empty names) and nonempty symbols, including embedded zero bytes and invalid UTF-8, array order, and duplicates; and require equal, nonzero array lengths. Symbols MUST contain at least one byte and MUST be hashed and stored exactly as submitted, without case folding, trimming, Unicode normalization, or character-set validation. Each index identifies one representation. Registration order is not preference order.
 
 First registration MUST store arguments and `block.number`, emit the complete inputs in `MultichainTokenRegistered`, and return the hash. Only `multichainTokenHash` MUST be indexed; both strings and all arrays MUST remain unindexed and reproduce the exact registration arguments so indexers can reconstruct the snapshot and recompute its hash from the log. The log supplies the registration block; `Token.registrationBlock` MUST retain it in storage and the getter. Duplicates MUST return it without mutation or another event. Existence MUST use the stored symbol: `bytes(tokens[tokenHash].symbol).length != 0` detects duplicates, and `== 0` detects unknown hashes, whose getters MUST revert `TokenNotFound`. No separate existence mapping is used. This supports block zero. The literal symbol `0` is valid; only zero-length symbols are rejected (the reference implementation reverts `EmptySymbol()`). Invalid input MUST revert atomically. Registries MUST be immutable, without ownership, administration, upgrades, mutable validation, privileged registration, editing, deletion, replacement, or transfer. Registration requires no external calls.
 
-### Representation validation
+### Contract-enforced representation checks
 
 Every `contracts` entry MUST be one complete binary [ERC-7930](https://eips.ethereum.org/EIPS/eip-7930) Interoperable Address:
 
@@ -96,7 +100,7 @@ require r > 0, a > 0, totalLength == 6+r+a
 if chainType == 0x0000: require r <= 32, reference[0] != 0, a == 20
 ```
 
-Lengths are unsigned bytes; reject truncation, trailing bytes, chainless entries, and every other version regardless of compatibility bits. EIP-155 references encode positive chain IDs in minimal big-endian form. Other namespaces receive framing validation only; registrants SHOULD use canonical encodings and clients MUST validate namespace semantics.
+Lengths are unsigned bytes; reject truncation, trailing bytes, chainless entries, and every other version regardless of compatibility bits. EIP-155 references encode positive chain IDs in minimal big-endian form. Other namespaces receive only framing and the address checks below. The contract does not validate their namespace semantics.
 
 Standards MUST remain `uint256`, never enums:
 
@@ -107,7 +111,13 @@ Standards MUST remain `uint256`, never enums:
 | 721, 6909, 1155 | Corresponding ERC | Any uint256 | Nonempty |
 | Other nonzero | Opaque extension | Any uint256 | Nonempty |
 
-These rules MUST be enforced. Standard 0 determines native semantics; its zero address is an asset sentinel, never a recipient. Empty-address native registrations are invalid; wrapped assets use their actual contracts. Assigned meanings MUST NOT change. Extensions MUST assign unused permanent values and define address/ID semantics, requiring zero for ID-less standards. Supporting clients MUST enforce these additional rules; unknown standards MUST NOT be routed.
+The contract MUST enforce the ID and address checks in this table, together with the EIP-155 checks above. It accepts all other nonzero standard values without checking their meaning or whether an address implements a claimed standard. Empty-address native registrations are invalid.
+
+### Specification and client responsibilities
+
+Standard 0 specifies native transfer semantics; its zero address is an asset sentinel, never a recipient. Wrapped assets use their actual contracts. Assigned meanings MUST NOT change. Extensions MUST assign unused permanent values and define address/ID semantics, requiring zero for ID-less standards. Supporting clients MUST enforce these additional rules; unknown standards MUST NOT be routed. These semantic and routing requirements are not contract checks.
+
+Registrants SHOULD use canonical namespace encodings, and clients MUST validate namespace semantics beyond the contract checks above. Clients MUST establish contract and token-grouping authenticity independently and handle untrusted display data safely. Display processing MUST NOT alter the bytes used to recompute the snapshot hash. The registry neither reads ENS preferences nor enforces the parsing and client behavior specified below.
 
 ### ENS record and parsing
 
