@@ -32,6 +32,8 @@ Tokens such as USDC are deployed on many chains, but no protocol-level identifie
 
 The Multichain Token Registry lets anyone register a name, symbol, and list of deployed contracts as an immutable snapshot. The registry hashes that snapshot to create the token fingerprint used in the ENSIP-24 `payment-preference[<multichainTokenHash>]` key. A token may have several fingerprints when registrations use different contract lists or metadata, and each fingerprint identifies only the snapshot from which it was created.
 
+Registration is not an endorsement. The registry does not check whether the name, symbol, or contract addresses are correct or belong to the same token, so anyone can create a false or misleading snapshot. Its purpose is only to create an immutable identifier from the submitted data; clients must establish authenticity independently.
+
 The canonical registry will be deployed on Ethereum mainnet (chain ID 1), and clients MUST identify it by the address specified in this ENSIP. **Editorial note: add the canonical mainnet address before finalization.** The registry at `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc` on Sepolia (chain ID 11155111) is the test deployment.
 
 The registry MUST implement the following interface and the hashing, validation, and immutability rules below:
@@ -116,7 +118,7 @@ Existing resolver profiles and ERC-7828 destinations remain unchanged. ENSIP-24 
 
 ## Security Considerations
 
-Hashes prove integrity assuming collision resistance, not authenticity or economic equivalence. Symbols, metadata, contracts, and resolver responses are untrusted; clients MUST handle deceptive or invalid display data safely. Immutable snapshots do not freeze remote contracts. Registration blocks describe only the host chain, not remote inspection times.
+The registry cannot prevent false or fraudulent registrations. Hashes prove which data produced an identifier, assuming collision resistance, but not that the data is authentic or economically equivalent. Symbols, metadata, contracts, and resolver responses are untrusted; clients MUST handle deceptive or invalid display data safely. Immutable snapshots do not freeze remote contracts. Registration blocks describe only the host chain, not remote inspection times.
 
 Before transactions, clients MUST verify chain support, asset authenticity, standard/ID semantics, chain-specific recipients, and transaction safety; never reuse an Ethereum recipient merely because address lengths match. Routes require independent liquidity, bridge, balance, fee, allowance, slippage, and delivery checks as applicable. Preferences authorize neither bridging, approvals, nor asset substitution. Clients SHOULD display destination, recipient, asset/ID, amount, and bridge operations for confirmation and revalidate mutable ENS/routing assumptions before signing. Bound untrusted work; account for stale caches, RPC/resolver integrity, ownership changes, and reorganizations.
 
