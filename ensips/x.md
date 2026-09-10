@@ -1,5 +1,5 @@
 ---
-title: Token Payment Preferences
+title: Payment Preferences
 description: Ordered payment chain preferences keyed by immutable multichain token snapshots
 contributors:
   - premm.eth
@@ -8,7 +8,7 @@ ensip:
   status: draft
 ---
 
-# ENSIP-X: Token Payment Preferences
+# ENSIP-X: Payment Preferences
 
 ## Abstract
 
@@ -35,7 +35,7 @@ The Multichain Token Registry lets anyone register a name, symbol, and list of d
 
 Registration is not an endorsement. The registry does not check whether the name, symbol, or contract addresses are correct or belong to the same token, so anyone can create a false or misleading snapshot. Its purpose is only to create an immutable identifier from the submitted data; clients must establish authenticity independently.
 
-The canonical registry will be deployed on Ethereum mainnet (chain ID 1), and clients MUST identify it by the address specified in this ENSIP. **Editorial note: add the canonical mainnet address before finalization.** The registry at `0x33bE57E9541ABeaF3bab59C362e1904804de66e3` on Sepolia (chain ID 11155111) is the test deployment ([verified source on Sepolia Etherscan](https://sepolia.etherscan.io/address/0x33bE57E9541ABeaF3bab59C362e1904804de66e3#code)). Prior Sepolia deployments `0xDDB3e5B88F00C7b79f799AB7cafa4b09Ef5f38Cc`, `0x1e60cA458299a6a9B9Be846412092b512A4216bd`, and `0xA06FA95C22e1CC59B762f49345D43eBa266F1699` are superseded.
+The canonical registry will be deployed on Ethereum mainnet (chain ID 1), and clients MUST identify it by the address specified in this ENSIP. **Editorial note: add the canonical mainnet address before finalization.** The registry at `0x33bE57E9541ABeaF3bab59C362e1904804de66e3` on Sepolia (chain ID 11155111) is the test deployment ([verified source on Sepolia Etherscan](https://sepolia.etherscan.io/address/0x33bE57E9541ABeaF3bab59C362e1904804de66e3#code)).
 
 The contract enforces the registration rules below: nonempty symbols, array lengths, representation framing and the listed standard/ID checks, exact hashing and storage, duplicate handling, and event/getter behavior. Authenticity, display handling, namespace semantics beyond those checks, and preference parsing and routing are specification/client responsibilities; the registry does not enforce them.
 
@@ -78,46 +78,26 @@ interface IMultichainTokenRegistry {
 
 ### Contract-enforced registration rules
 
-The hash MUST be exactly:
+The registry computes the snapshot identifier as:
 
 ```solidity
 keccak256(abi.encode(name, symbol, contracts, standards, ids))
 ```
 
-Encode five arguments of types `(string,string,bytes[],uint256[],uint256[])`, not one tuple or packed data; exclude selector, block, caller, and deployment details. Canonically re-encode decoded arguments; use Keccak-256, not SHA3-256.
+Symbols must be nonempty. Names and symbols are stored without normalization, and array order is preserved; these choices affect the hash. Registration is permissionless and immutable, and registering the same snapshot again returns its existing hash.
 
-Registries MUST allow permissionless, fee-free registration; require `bytes(symbol).length > 0` before registration; preserve raw names (including empty names) and nonempty symbols, including embedded zero bytes and invalid UTF-8, array order, and duplicates; and require equal, nonzero array lengths. Symbols MUST contain at least one byte and MUST be hashed and stored exactly as submitted, without case folding, trimming, Unicode normalization, or character-set validation. Each index identifies one representation. Registration order is not preference order.
+### Token representations
 
-First registration MUST store arguments and `block.number`, emit the complete inputs in `MultichainTokenRegistered`, and return the hash. Only `multichainTokenHash` MUST be indexed; both strings and all arrays MUST remain unindexed and reproduce the exact registration arguments so indexers can reconstruct the snapshot and recompute its hash from the log. The log supplies the registration block; `Token.registrationBlock` MUST retain it in storage and the getter. Duplicates MUST return it without mutation or another event. Existence MUST use the stored symbol: `bytes(tokens[tokenHash].symbol).length != 0` detects duplicates, and `== 0` detects unknown hashes, whose getters MUST revert `TokenNotFound`. No separate existence mapping is used. This supports block zero. The literal symbol `0` is valid; only zero-length symbols are rejected (the reference implementation reverts `EmptySymbol()`). Invalid input MUST revert atomically. Registries MUST be immutable, without ownership, administration, upgrades, mutable validation, privileged registration, editing, deletion, replacement, or transfer. Registration requires no external calls.
+Each array index describes one token representation: its chain-specific [ERC-7930](https://eips.ethereum.org/EIPS/eip-7930) address, standard, and token ID. Array order does not express a chain preference.
 
-### Contract-enforced representation checks
+| Standard | Meaning | ID |
+| --- | --- | --- |
+| 0 | Native asset, represented by a 20-byte zero address | Zero |
+| 20 | ERC-20 | Zero |
+| 721, 6909, 1155 | Corresponding ERC | Token ID |
+| Other nonzero | Extension | Defined by the extension |
 
-Every `contracts` entry MUST be one complete binary [ERC-7930](https://eips.ethereum.org/EIPS/eip-7930) Interoperable Address:
-
-```text
-version[2]=0x0001 || chainType[2] || r[1] || reference[r] || a[1] || address[a]
-require r > 0, a > 0, totalLength == 6+r+a
-if chainType == 0x0000: require r <= 32, reference[0] != 0, a == 20
-```
-
-Lengths are unsigned bytes; reject truncation, trailing bytes, chainless entries, and every other version regardless of compatibility bits. EIP-155 references encode positive chain IDs in minimal big-endian form. Other namespaces receive only framing and the address checks below. The contract does not validate their namespace semantics.
-
-Standards MUST remain `uint256`, never enums:
-
-| Standard | Meaning | ID | Address |
-| --- | --- | --- | --- |
-| 0 | Native value transfer | Zero | Exactly 20 zero bytes |
-| 20 | ERC-20 | Zero | Nonempty |
-| 721, 6909, 1155 | Corresponding ERC | Any uint256 | Nonempty |
-| Other nonzero | Opaque extension | Any uint256 | Nonempty |
-
-The contract MUST enforce the ID and address checks in this table, together with the EIP-155 checks above. It accepts all other nonzero standard values without checking their meaning or whether an address implements a claimed standard. Empty-address native registrations are invalid.
-
-### Specification and client responsibilities
-
-Standard 0 specifies native transfer semantics; its zero address is an asset sentinel, never a recipient. Wrapped assets use their actual contracts. Assigned meanings MUST NOT change. Extensions MUST assign unused permanent values and define address/ID semantics, requiring zero for ID-less standards. Supporting clients MUST enforce these additional rules; unknown standards MUST NOT be routed. These semantic and routing requirements are not contract checks.
-
-Registrants SHOULD use canonical namespace encodings, and clients MUST validate namespace semantics beyond the contract checks above. Clients MUST establish contract and token-grouping authenticity independently and handle untrusted display data safely. Display processing MUST NOT alter the bytes used to recompute the snapshot hash. The registry neither reads ENS preferences nor enforces the parsing and client behavior specified below.
+The native zero address identifies an asset, not a payment recipient; wrapped tokens use their actual contracts. Extensions MUST retain existing standard assignments. Clients MUST understand a standard and validate its chain-specific meaning before using it. The contract checks input structure; it does not establish token authenticity or interpret ENS preferences.
 
 ### ENS record and parsing
 
@@ -128,27 +108,21 @@ payment-preference[<multichainTokenHash>]
 value = C1 || C2 || ... || Cn
 ```
 
-The case-sensitive key MUST contain lowercase `0x` plus exactly 64 hex digits, literal brackets, and no spaces. No text-record or symbol fallback exists. Each `Ci` MUST be a version-1 ERC-7930 Chain Identifier: the framing above with `a=0`, including that byte. The payload has no outer encoding, count, delimiter, or textual hex wrapper. Earlier entries rank higher.
-
-Clients MUST validate the entire payload before use: advance by `6+r`, enforce bounds, version, nonempty reference, zero address length, and EIP-155 reference rules above. Writers MUST use canonical namespace encodings; clients MUST validate supported namespaces. Byte-identical `(chainType,reference)` duplicates and semantic duplicates in supported namespaces MUST be rejected and MUST NOT be written. Unknown namespaces MAY be skipped as unavailable after framing validation; unsupported known chains are also unavailable. Malformation, duplicates, unsupported versions, or exceeded resource limits MUST discard the whole result, never retain a prefix. Clients SHOULD document byte/count and resolution limits.
+Write `<multichainTokenHash>` as all lowercase hex preceded by `0x`. Each `Ci` MUST be an ERC-7930 Chain Identifier. Earlier entries rank higher.
 
 ### Snapshot and client requirements
 
-Hashes fingerprint snapshots, not canonical enduring identities. Metadata, representation, ID, or ordering changes produce distinct snapshots without automatic supersession or aliasing. Clients MUST NOT transfer preferences between hashes. ENS owners must update keys deliberately.
-
-Clients MUST resolve production snapshots from the canonical Ethereum L1 registry identified above, verify its code conforms to this specification, and recompute snapshot hashes. A matching hash from another registry MUST NOT substitute for canonical registration: code or validation rules may differ even though the hash preimage excludes deployment details. Clients MUST authenticate the intended representation independently (including when several share a chain) and match candidate chains to it. Missing canonical snapshots are unresolved.
-
-Clients MUST skip chains absent from the snapshot and SHOULD consider usable chains in preference order subject to sender constraints. Explicit sender choices, including ERC-7828 chains, MUST NOT be overridden. Empty/missing records, unsupported ENSIP-24, resolver errors, and unusable results supply no preference, prohibition, authorization, or default. Clients SHOULD distinguish failures diagnostically. With no suitable candidate, require explicit alternatives or report no route; fallback MUST NOT be presented as recipient preference.
+Preferences apply to a specific snapshot and do not automatically carry over to another hash. Clients should retrieve the snapshot from the Ethereum L1 registry, verify its hash and token authenticity, and consider supported chains from that snapshot in the recipient's preferred order. Preferences are one input to chain selection and must respect the sender's explicit choices.
 
 ## Backwards Compatibility
 
-Existing resolver profiles and ERC-7828 destinations remain unchanged. ENSIP-24 needs no new method. Existing ENS authorization controls preference publication independently of permissionless registration; absent preferences retain ordinary selection flows.
+This proposal uses the existing ENSIP-24 interface and does not change how ENS addresses or ERC-7828 names are resolved.
 
 ## Security Considerations
 
 The registry cannot prevent false or fraudulent registrations. Hashes prove which data produced an identifier, assuming collision resistance, but not that the data is authentic or economically equivalent. Symbols, metadata, contracts, and resolver responses are untrusted; clients MUST handle deceptive or invalid display data safely. Immutable snapshots do not freeze remote contracts. Registration blocks describe only the host chain, not remote inspection times.
 
-Before transactions, clients MUST verify chain support, asset authenticity, standard/ID semantics, chain-specific recipients, and transaction safety; never reuse an Ethereum recipient merely because address lengths match. Routes require independent liquidity, bridge, balance, fee, allowance, slippage, and delivery checks as applicable. Preferences authorize neither bridging, approvals, nor asset substitution. Clients SHOULD display destination, recipient, asset/ID, amount, and bridge operations for confirmation and revalidate mutable ENS/routing assumptions before signing. Bound untrusted work; account for stale caches, RPC/resolver integrity, ownership changes, and reorganizations.
+Clients should treat a token payment preference as one piece of information when directing a payment to the ENS name owner's preferred chain. A preference alone does not establish that a payment is safe or appropriate; clients remain responsible for validating the token, recipient, and chosen chain before sending funds.
 
 ## Copyright
 
