@@ -12,7 +12,7 @@ ensip:
 
 ## Abstract
 
-This proposal defines ENSIP-24 chain preferences keyed by immutable token snapshots. It specifies registration and interpretation, not asset authentication or payment authorization.
+A sender who knows only an ENS name and token cannot determine which chain the recipient prefers. This ENSIP defines ordered per-token chain preferences in ENSIP-24 records, keyed by immutable multichain token snapshot hashes.
 
 ## Motivation
 
