@@ -79,7 +79,9 @@ The record value is raw bytes, composed of:
 
 **Storage**
 
-For a name to support verified gateway resolution (Section 4), the record MUST be stored in the verifying resolver's own storage: the verifying resolver is the resolver for the name, as located per [ENSIP-10](https://docs.ens.domains/ensip/10), implements ENSIP-24 for this key, and reads that storage by `node` during verification. This applies equally to wildcard names whose other records are served offchain: the meta-address itself MUST be onchain, so enabling stealth resolution for such a name requires writing this record to the verifying resolver. Because ENS allows one resolver per node, a verifying resolver SHOULD also implement the standard resolver profiles (address, text, contenthash) so that names can adopt it without losing existing records.
+For a name to support verified gateway resolution (Section 4), the verifying resolver, located for the name per [ENSIP-10](https://docs.ens.domains/ensip/10), MUST serve this record via ENSIP-24 `data()` and MUST verify against exactly that value, obtained onchain within the verification call and independent of any gateway-supplied input. This applies equally to wildcard names whose other records are served offchain: the meta-address itself MUST be available onchain for verification. 
+
+Because ENS allows one resolver per node, a verifying resolver SHOULD also implement the standard resolver profiles (address, text, contenthash) so that names can adopt it without losing existing records.
 
 **Rotation**
 
@@ -100,7 +102,7 @@ A name may support client-side derivation, gateway-based resolution, or both. Th
 
 A sending client proceeds as follows:
 
-- A client that accepts gateway-based resolution MAY simply call `addr()` (or the chain-specific address record) without reading the meta-address record. A verifying resolver (implementing the interface in Section 5) returns a verified one-time address per Section 4; a name without a gateway returns whatever the owner has set, or nothing. This is the path taken by wallets unaware of this ENSIP.
+- A client that accepts gateway-based resolution MAY simply call `addr()` (or the chain-specific address record) without reading the meta-address record. A verifying resolver (implementing the interface in Section 5) returns a verified one-time address per Section 4; a name without a gateway returns whatever the owner has set, or nothing. This is the path taken by wallets unaware of this ENSIP. A client that wishes to know whether a name's resolver supports stealth addresses MAY check the resolver's ERC-165 support for the interface in Section 5.
 - A client that wishes to derive locally MUST first read the meta-address record per Section 1 for the target chain's coin type. If the record is absent or malformed, the name is not stealth-enabled on that chain. If flags bit 0 is set, the client MAY derive locally per Section 3. If flags bit 0 is clear, the client MUST NOT derive locally and falls back to `addr()`.
 - If the record exists with flags bit 0 clear and `addr()` returns nothing, the name is misconfigured; the client MUST surface an error and MUST NOT derive locally.
 
@@ -162,7 +164,7 @@ The [ERC-165](https://eips.ethereum.org/EIPS/eip-165) interface ID for `IStealth
 - Each verifying resolver is **immutable** and verifies **exactly one scheme**, advertised via `schemeId()`. New schemes (e.g. smart-account stealth accounts, ZK-based verification) are deployed as new immutable resolvers; name owners opt in through normal resolver selection. Immutable means the resolver's code is not upgradeable. Resolver-level configuration, such as the set of supported coin types, MAY be updatable, but MUST NOT affect address derivation or any name's meta-address. A scheme's ID MUST be an ERC-5564 scheme ID. Its specification MUST define the meta-address encoding, the address derivation, and the `verificationData` format. `verificationData` MUST NOT carry any parameter that affects control of the derived address beyond the meta-address itself (e.g. account implementation or setup data); such parameters MUST be fixed by the scheme.
 - One canonical resolver deployment SHOULD exist per scheme per ENS deployment (e.g. via CREATE2), shared by all integrators.
 - Gateway URLs are stored **per name**, so independent gateways can serve different names against the same resolver deployment. The functions for reading and setting gateway URLs are implementation-defined. Write authorization for the meta-address record and the gateway URLs MUST follow the same rules the resolver applies to the name's conventional records.
-- `verifyStealthResolution` resolves the meta-address record for `node` itself from the resolver's own storage (Section 1). Beyond serving as the in-flow verification of Section 4, it allows anyone to re-verify a past resolution out of flow and lets other contracts consume stealth resolutions onchain.
+- `verifyStealthResolution` obtains the meta-address for `node` itself, as the value served by `data()` (Section 1). Beyond serving as the in-flow verification of Section 4, it allows anyone to re-verify a past resolution out of flow and lets other contracts consume stealth resolutions onchain.
 
 ### 6. Gateway requirements
 
